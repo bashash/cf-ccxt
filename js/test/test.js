@@ -342,7 +342,6 @@ let tryAllProxies = async function (exchange, proxies) {
             break
 
         } catch (e) {
-            // console.log(e)
             currentProxy = ++currentProxy % proxies.length
             if (e instanceof ccxt.DDoSProtection) {
                 warn ('[DDoS Protection]' + e.message.slice (0, 200))
