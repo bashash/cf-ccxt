@@ -134,7 +134,6 @@ let testSymbol = async (exchange, symbol) => {
 let loadExchange = async exchange => {
 
     let markets = await exchange.loadMarkets ()
-
     assert (typeof exchange.markets === 'object', '.markets is not an object')
     assert (Array.isArray (exchange.symbols), '.symbols is not an array')
     assert (exchange.symbols.length > 0, '.symbols.length <= 0 (less than or equal to zero)')
@@ -216,7 +215,7 @@ let testExchange = async exchange => {
             code = c
         }
     }
-
+    
     await loadExchange (exchange)
 
     let symbol = exchange.symbols[0]
@@ -324,7 +323,6 @@ let tryAllProxies = async function (exchange, proxies) {
 
     let currentProxy = 0
     let maxRetries   = proxies.length
-
     if (settings && ('proxy' in settings))
         currentProxy = proxies.indexOf (settings.proxy)
 
@@ -338,13 +336,12 @@ let tryAllProxies = async function (exchange, proxies) {
             if (exchange.proxy.length > 0) {
                 exchange.origin = exchange.uuid ()
             }
-
+            
             await testExchange (exchange)
 
             break
 
         } catch (e) {
-
             currentProxy = ++currentProxy % proxies.length
             if (e instanceof ccxt.DDoSProtection) {
                 warn ('[DDoS Protection]' + e.message.slice (0, 200))
@@ -368,7 +365,6 @@ let tryAllProxies = async function (exchange, proxies) {
 //-----------------------------------------------------------------------------
 
 ;(async function test () {
-
     if (exchangeSymbol) {
         await loadExchange (exchange)
         await testSymbol (exchange, exchangeSymbol)

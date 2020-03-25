@@ -116,6 +116,7 @@ class Exchange {
         'coinmate',
         'coinone',
         'coinspot',
+        'cointiger',
         'coolcoin',
         'coss',
         'crex24',
