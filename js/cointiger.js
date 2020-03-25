@@ -124,10 +124,10 @@ module.exports = class cointiger extends Exchange {
                 symbol = `${marketName.slice(0, marketName.length - 4)}/${marketName.slice(-4)}`;
                 base = marketName.slice(0, marketName.length - 4);
                 quote = marketName.slice(-4);
-            } else if (marketName.slice(-5) === 'BITCNY') {
-                symbol = `${marketName.slice(0, marketName.length - 5)}/${marketName.slice(-5)}`;
-                base = marketName.slice(0, marketName.length - 5);
-                quote = marketName.slice(-5);
+            } else if (marketName.slice(-6) === 'BITCNY') {
+                symbol = `${marketName.slice(0, marketName.length - 6)}/${marketName.slice(-6)}`;
+                base = marketName.slice(0, marketName.length - 6);
+                quote = marketName.slice(-6);
             }
             markets[marketName]['id'] = marketName.toLowerCase();
 
