@@ -367,7 +367,6 @@ module.exports = class Exchange {
         this.throttle = throttle (this.tokenBucket)
 
         this.executeRestRequest = (url, method = 'GET', headers = undefined, body = undefined) => {
-
             // fetchImplementation cannot be called on this. in browsers:
             // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
             const fetchImplementation = this.fetchImplementation
