@@ -128,7 +128,10 @@ module.exports = class cointiger extends Exchange {
 
     async fetchBalance(params = {}) {
         await this.loadMarkets();
-        // this.symbols = 
+        const request = {
+            time:,
+            sign:,
+        };
         const response = await this.tapiPrivateGetUserBalance (params);
         // const result = { 'info': response };
         // for (let i = 0; i < response.length; i++) {
