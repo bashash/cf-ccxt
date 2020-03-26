@@ -379,13 +379,13 @@ module.exports = class coinfield extends Exchange {
                     'market': market,
                     'type': type,
                     'strategy': strategy,
-                    'funds': funds
+                    'funds': typeof funds === 'number' ? String(funds) : funds,
                 }
                 : {
                     'market': market,
                     'type': type,
                     'strategy': strategy,
-                    'volume': volume
+                    'volume': typeof volume === 'number' ? String(volume) : volume,
                 }
         } else if (strategy === 'limit') {
             body = timeInForce 
@@ -393,7 +393,7 @@ module.exports = class coinfield extends Exchange {
                     'market': market,
                     'type': type,
                     'strategy': strategy,
-                    'volume': volume,
+                    'volume': typeof volume === 'number' ? String(volume) : volume,
                     'price': price,
                     'immediate': immediate,
                 }
@@ -401,7 +401,7 @@ module.exports = class coinfield extends Exchange {
                     'market': market,
                     'type': type,
                     'strategy': strategy,
-                    'volume': volume,
+                    'volume': typeof volume === 'number' ? String(volume) : volume,
                     'price': price,
                     'expiry': expiry,
                     'immediate': immediate,
@@ -412,7 +412,7 @@ module.exports = class coinfield extends Exchange {
                     'market': market,
                     'type': type,
                     'strategy': strategy,
-                    'volume': volume,
+                    'volume': typeof volume === 'number' ? String(volume) : volume,
                     'price': price,
                     'stop_price': stop_price,
                     'immediate': immediate,
@@ -421,7 +421,7 @@ module.exports = class coinfield extends Exchange {
                     'market': market,
                     'type': type,
                     'strategy': strategy,
-                    'volume': volume,
+                    'volume': typeof volume === 'number' ? String(volume) : volume,
                     'price': price,
                     'stop_price': stop_price,
                     'expiry': expiry,
