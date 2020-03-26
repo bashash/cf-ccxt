@@ -293,9 +293,45 @@ module.exports = class coinfield extends Exchange {
         };
 
         const response = await this.privateGetTradeHistoryMarket (this.extend (request, params));
-        return this.parseTrades (response, market, since, limit);
+        console.log("HEREEEE", response)
+        return this.parseTrades (response.trades, market, since, limit);
     }
 
+    parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+        let result = Object.values (trades || []).map ((trade) => this.extend (this.parseTrade (trade, market), params))
+        result = this.sortBy (result, 'timestamp')
+        // const symbol = (market !== undefined) ? market['symbol'] : undefined
+        return result;
+    }
+
+    parseTrade (trade, market = undefined) {
+        const {
+            id,
+            side,
+        } = trade;
+        const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
+        const datetime = this.iso8601(timestamp);
+        const symbol = this.marketId(market);
+        const orderId = this.safeString(trade, 'order_id');
+        const price = this.safeFloat(trade, 'price');
+        const amount = this.safeFloat(trade, 'volume');
+        const cost = this.safeFloat(trade, 'total_value');
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'symbol': symbol,
+            'order': orderId,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+            'info': trade,
+        };
+    }
     // async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
     //     await this.loadMarkets ();
     //     const response = await this.privatePostOrder();
