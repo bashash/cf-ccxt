@@ -22,10 +22,9 @@ module.exports = class coinfield extends Exchange {
                 'fetchMarkets': true,
                 'fetchTicker': true,
                 // 'fetchTickers': true,
-                // 'fetchOHLCV': false,
                 //private
-                // 'fetchOrders': true,
-                // 'fetchMyTrades': true,
+                'fetchOrders': true,
+                'fetchMyTrades': true,
                 // 'createOrder': true,
                 // 'cancelOrder': true,
                 'fetchBalance': true,
@@ -220,6 +219,68 @@ module.exports = class coinfield extends Exchange {
         const orderbook = await this.publicGetOrderbookMarket (request);
         const { timestamp } = orderbook;
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'volume');
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market(symbol);
+        const marketName = this.marketId(symbol)
+        const resuest = {
+            'market': marketName,
+            'limit': limit ? limit : '',
+            // 'state': state,
+            // 'page': page,
+            // 'order_by': order_by ? order_by : 'desc'
+        }
+        const response = await privateGetOrdersMarket(this.extend(request, params));
+        return this.parseOrders (response.orders, market, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        const {
+            id,
+            side,
+            strategy,
+            // price, 
+            // avg_price,
+            state,
+            // market,
+            // created_at,
+            // volume,
+            // remaining_volume,
+            // executed_volume,
+            // trades_count,
+        } = order;
+        const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        const datetime = this.iso8601(timestamp);
+        const symbol = this.safeString(order, 'market');  
+        const price = this.safeFloat(order, 'price');
+        const average = this.safeFloat(order, 'avg_price');
+        const amount = this.safeFloat(order, 'volume');
+        const cost = price * amount;
+        const remaining = this.safeFloat(order, 'remaining_volume');
+        const filled = this.safeFloat(order, 'executed_volume');
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'lastTradeTimestamp': undefined,
+            'status': state,
+            'symbol': symbol,
+            'type': strategy,
+            'side': side,
+            'price': price,
+            'average': average,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': undefined,
+            'info': order,
+        }
     }
 
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
