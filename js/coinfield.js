@@ -236,7 +236,6 @@ module.exports = class coinfield extends Exchange {
             // 'order_by': order_by ? order_by : 'desc'
         }
         const response = await this.privateGetOrdersMarket(this.extend(request, params));
-        console.log("HEREEEEEEEEE", response);
         return this.parseOrders (response.orders, market, since, limit);
     }
 

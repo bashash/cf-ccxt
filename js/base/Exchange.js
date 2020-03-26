@@ -1138,6 +1138,7 @@ module.exports = class Exchange {
         //     throw new ExchangeError (this.id + ' parseOrders expected an array in the orders argument, but got ' + typeof orders);
         // }
         let result = Object.values (orders).map (order => this.extend (this.parseOrder (order, market), params))
+        console.log("HEREEEEEEEEE", result);
         result = sortBy (result, 'timestamp')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
