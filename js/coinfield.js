@@ -292,8 +292,9 @@ module.exports = class coinfield extends Exchange {
             'limit': limit ? limit : 50,
         };
 
+        console.log("HEREEEE", request)
         const response = await this.privateGetTradeHistoryMarket (this.extend (request, params));
-        console.log("HEREEEE", response)
+        console.log("response", response)
         return this.parseTrades (response.trades, market, since, limit);
     }
 
