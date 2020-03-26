@@ -26,7 +26,7 @@ module.exports = class coinfield extends Exchange {
                 'fetchOrders': true,
                 'fetchMyTrades': true,
                 'createOrder': true,
-                // 'cancelOrder': true,
+                'cancelOrder': true,
                 'fetchBalance': true,
             },
             'headers': {
@@ -60,14 +60,6 @@ module.exports = class coinfield extends Exchange {
                         'orders/{market}',
                     ]
                 },
-            },
-            'fees': {
-                // 'trading': {
-                //     'tierBased': false,
-                //     'percentage': true,
-                //     'maker': 0.0008,
-                //     'taker': 0.0015,
-                // },
             },
         });
     }
@@ -230,10 +222,7 @@ module.exports = class coinfield extends Exchange {
         const marketName = this.marketId(symbol)
         const request = {
             'market': marketName,
-            'limit': limit ? limit : '',
-            // 'state': state,
-            // 'page': page,
-            // 'order_by': order_by ? order_by : 'desc'
+            'limit': limit ? limit : 50,
         }
         const response = await this.privateGetOrdersMarket(this.extend(request, params));
         return this.parseOrders (response.orders, market, since, limit);
@@ -299,7 +288,6 @@ module.exports = class coinfield extends Exchange {
     parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
         let result = Object.values (trades || []).map ((trade) => this.extend (this.parseTrade (trade, market), params))
         result = this.sortBy (result, 'timestamp')
-        // const symbol = (market !== undefined) ? market['symbol'] : undefined
         return result;
     }
 
@@ -348,15 +336,24 @@ module.exports = class coinfield extends Exchange {
                 'volume': amount,
                 'price': price,
             };
-        console.log("request", request)
         const response = await this.privatePostOrder(this.extend(request, params));
-        console.log('HEREEEEEEE', response)
         const { order } = response;
         const { id } = order;
         return {
             'id': id,
             'info': response,
         }
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` argument');
+        }
+        await this.loadMarkets ();
+        const request = {
+            'marekt': this.marketId (symbol),
+        };
+        return await this.privateDeleteOrdersMarket (this.extend (request, params));
     }
 
     createBody (params) {
@@ -444,16 +441,9 @@ module.exports = class coinfield extends Exchange {
     }
 
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        console.log(
-            'path', path,
-            'api', api,
-            'params', params,
-            this.implodeParams (path, params)
-        )
         let request = '/';
         request += this.implodeParams (path, params);
         if (api === 'private') {
-            // const jwt = this.jwt (request, this.encode (this.secret));
             this.apiKey = 'eyJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE1ODUxNzg5ODEsImV4cCI6MTU4NTI2NTMzOCwic3ViIjoic2Vzc2lvbiIsImlzcyI6InVhYyIsInNjcCI6WyJvcmRlcnMiXSwiYXBpIjp0cnVlLCJqdGkiOiJiMzk1NTZiNy04MWE4LTRkMDAtYTRmMS04ZDgwODU2ZGQzZDgiLCJ1aWQiOiJJRDQwMEMyRDRBMzYiLCJlbWFpbCI6ImRlbW9AY29pbmZpZWxkLmNvbSJ9.Yp61vZSBEFjLl16Cr1MUSLWYvpaNAXnw6GkE5T2Ig720e5-c4h9ykCTGXIUuwFp2owfsnD2SeuPs68ngs_N9FOsRNHlWxol-0zlGKzAHKgH5k_FL_7XELi_K7vGjN5IzYH_FIr_G1ujgV55tWIq61tFoqAIUyBVZ3whqKrU6srCHYyapCyBPNeOFD_GVb18Q_Lr1J24LTAkmDdiabNTiCEZOfmpAvkULrXpo3gLtXWhEqvTX2kMNWBI91NB5VxXphFyCzoi2O28JznKWXbn7oTWusSMdxAMyU2weg09phTwGag5IeX_yvP1qr0F1e4MjENuzMXz97J1gIVCe8JXWlg'
             if (method === 'POST') {
                 headers = {
@@ -469,7 +459,6 @@ module.exports = class coinfield extends Exchange {
                 }
             }
         }
-        console.log("BODY", body)
         const url = this.urls['api'] + request;
         console.log("HEREEEE", url)
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
