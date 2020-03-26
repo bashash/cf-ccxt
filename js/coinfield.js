@@ -292,10 +292,8 @@ module.exports = class coinfield extends Exchange {
             'limit': limit ? limit : 50,
         };
 
-        console.log("HEREEEE", request)
         const response = await this.privateGetTradeHistoryMarket (this.extend (request, params));
-        console.log("response", response)
-        return this.parseTrades (response.trades, market, since, limit);
+        return this.parseTrades (response.trades, symbol, since, limit);
     }
 
     parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
@@ -306,13 +304,14 @@ module.exports = class coinfield extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        console.log("MARKET", market)
         const {
             id,
             side,
         } = trade;
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const datetime = this.iso8601(timestamp);
-        const symbol = this.marketId(market);
+        const symbol = market;
         const orderId = this.safeString(trade, 'order_id');
         const price = this.safeFloat(trade, 'price');
         const amount = this.safeFloat(trade, 'volume');
