@@ -35,7 +35,7 @@ module.exports = class cointiger extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
                 'api': {
-                    'tapiPrivate': 'https://api.cointiger.com/exchange/trading/api/market',
+                    'tapiPrivate': 'https://api.cointiger.com/exchange/trading/api/',
                     'mapiPublic1': 'https://www.cointiger.com/exchange/api/public/market',
                     'mapiPublic2': 'https://api.cointiger.com/exchange/trading/api/market',
                     'apiV2Private': 'https://api.cointiger.com/exchange/trading/api/v2',
