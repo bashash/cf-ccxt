@@ -241,7 +241,7 @@ module.exports = class coinfield extends Exchange {
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
         let result = Object.values (orders).map (order => this.extend (this.parseOrder (order, market), params))
-        result = sortBy (result, 'timestamp')
+        result = this.sortBy (result, 'timestamp')
         // const symbol = (market !== undefined) ? market['symbol'] : undefined
         return result;
     }
