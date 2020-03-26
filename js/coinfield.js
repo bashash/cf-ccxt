@@ -351,7 +351,7 @@ module.exports = class coinfield extends Exchange {
         }
         await this.loadMarkets ();
         const request = {
-            'marekt': this.marketId (symbol),
+            'market': this.marketId (symbol),
         };
         return await this.privateDeleteOrdersMarket (this.extend (request, params));
     }
