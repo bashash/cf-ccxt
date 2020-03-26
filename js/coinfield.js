@@ -228,7 +228,7 @@ module.exports = class coinfield extends Exchange {
         await this.loadMarkets ();
         const market = this.market(symbol);
         const marketName = this.marketId(symbol)
-        const resuest = {
+        const request = {
             'market': marketName,
             'limit': limit ? limit : '',
             // 'state': state,
