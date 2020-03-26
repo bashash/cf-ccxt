@@ -107,6 +107,7 @@ module.exports = class coinfield extends Exchange {
         await this.loadMarkets();
         const response = await this.privateGetWallets();
         const balances = this.safeValue (response, 'wallets');
+        const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
