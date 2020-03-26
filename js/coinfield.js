@@ -106,8 +106,17 @@ module.exports = class coinfield extends Exchange {
     async fetchBalance(params = {}) {
         await this.loadMarkets();
         const response = await this.privateGetWallets();
-        const balances = this.safeValue (response, 'data');
-        console.log(balances)
+        const balances = this.safeValue (response, 'wallets');
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'locked');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
     }
 
     async fetchTicker(symbol, params = {}) {
