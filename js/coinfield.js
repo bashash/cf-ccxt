@@ -304,7 +304,6 @@ module.exports = class coinfield extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        console.log("MARKET", market)
         const {
             id,
             side,
@@ -332,14 +331,104 @@ module.exports = class coinfield extends Exchange {
             'info': trade,
         };
     }
-    // async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-    //     await this.loadMarkets ();
-    //     const response = await this.privatePostOrder();
-    //     return {
-    //         'id': id,
-    //         'info': response,
-    //     }
-    // }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = side === 'bid' && type === 'market' 
+            ? {
+                'market': this.marketId(symbol),
+                'type': side,
+                'strategy': type,
+                'funds': amount,
+            }
+            : {
+                'market': this.marketId(symbol),
+                'type': side,
+                'strategy': type,
+                'volume': amount,
+                'price': price,
+            };
+        console.log("request", request)
+        const response = await this.privatePostOrder(this.extend(request, params));
+        console.log('HEREEEEEEE', response)
+        const { order } = response;
+        const { id } = order;
+        return {
+            'id': id,
+            'info': response,
+        }
+    }
+
+    createBody (params) {
+        const {
+            market,
+            type,
+            strategy,
+            funds,
+            volume,
+            price,
+            stop_price,
+            expiry,
+            immediate,
+            timeInForce,
+        } = params;
+        if (strategy === 'market') {
+            body = type === 'bid' 
+                ? {
+                    'market': market,
+                    'type': type,
+                    'strategy': strategy,
+                    'funds': funds
+                }
+                : {
+                    'market': market,
+                    'type': type,
+                    'strategy': strategy,
+                    'volume': volume
+                }
+        } else if (strategy === 'limit') {
+            body = timeInForce 
+                ? {
+                    'market': market,
+                    'type': type,
+                    'strategy': strategy,
+                    'volume': volume,
+                    'price': price,
+                    'immediate': immediate,
+                }
+                : {
+                    'market': market,
+                    'type': type,
+                    'strategy': strategy,
+                    'volume': volume,
+                    'price': price,
+                    'expiry': expiry,
+                    'immediate': immediate,
+                }                        
+        } else if ('stop_limit') {
+            body = timeInForce
+                ? {
+                    'market': market,
+                    'type': type,
+                    'strategy': strategy,
+                    'volume': volume,
+                    'price': price,
+                    'stop_price': stop_price,
+                    'immediate': immediate,
+                }
+                : {
+                    'market': market,
+                    'type': type,
+                    'strategy': strategy,
+                    'volume': volume,
+                    'price': price,
+                    'stop_price': stop_price,
+                    'expiry': expiry,
+                    'immediate': immediate,
+                }
+        }
+        return body;
+    }
 
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         console.log(
@@ -350,21 +439,24 @@ module.exports = class coinfield extends Exchange {
         )
         let request = '/';
         request += this.implodeParams (path, params);
-        // if (api === 'public') {
-        //     if (method === 'GET') {
-        //         if (Object.keys(params).length) {
-        //             const { limit, timestamp, from, order_by} = params;
-        //             // request += '?' +
-        //         }
-        //     }
-        // } else 
         if (api === 'private') {
             // const jwt = this.jwt (request, this.encode (this.secret));
             this.apiKey = 'eyJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE1ODUxNzg5ODEsImV4cCI6MTU4NTI2NTMzOCwic3ViIjoic2Vzc2lvbiIsImlzcyI6InVhYyIsInNjcCI6WyJvcmRlcnMiXSwiYXBpIjp0cnVlLCJqdGkiOiJiMzk1NTZiNy04MWE4LTRkMDAtYTRmMS04ZDgwODU2ZGQzZDgiLCJ1aWQiOiJJRDQwMEMyRDRBMzYiLCJlbWFpbCI6ImRlbW9AY29pbmZpZWxkLmNvbSJ9.Yp61vZSBEFjLl16Cr1MUSLWYvpaNAXnw6GkE5T2Ig720e5-c4h9ykCTGXIUuwFp2owfsnD2SeuPs68ngs_N9FOsRNHlWxol-0zlGKzAHKgH5k_FL_7XELi_K7vGjN5IzYH_FIr_G1ujgV55tWIq61tFoqAIUyBVZ3whqKrU6srCHYyapCyBPNeOFD_GVb18Q_Lr1J24LTAkmDdiabNTiCEZOfmpAvkULrXpo3gLtXWhEqvTX2kMNWBI91NB5VxXphFyCzoi2O28JznKWXbn7oTWusSMdxAMyU2weg09phTwGag5IeX_yvP1qr0F1e4MjENuzMXz97J1gIVCe8JXWlg'
-            headers = {
-                'Authorization': 'Bearer ' + this.apiKey,
+            if (method === 'POST') {
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + this.apiKey,
+                }
+                if (Object.values(params).length) {
+                    body = this.createBody(params);                    
+                }
+            } else {
+                headers = {
+                    'Authorization': 'Bearer ' + this.apiKey,
+                }
             }
         }
+        console.log("BODY", body)
         const url = this.urls['api'] + request;
         console.log("HEREEEE", url)
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
