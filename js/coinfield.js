@@ -25,7 +25,7 @@ module.exports = class coinfield extends Exchange {
                 //private
                 'fetchOrders': true,
                 'fetchMyTrades': true,
-                // 'createOrder': true,
+                'createOrder': true,
                 // 'cancelOrder': true,
                 'fetchBalance': true,
             },
@@ -242,7 +242,6 @@ module.exports = class coinfield extends Exchange {
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
         let result = Object.values (orders).map (order => this.extend (this.parseOrder (order, market), params))
         result = this.sortBy (result, 'timestamp')
-        // const symbol = (market !== undefined) ? market['symbol'] : undefined
         return result;
     }
 
@@ -251,15 +250,7 @@ module.exports = class coinfield extends Exchange {
             id,
             side,
             strategy,
-            // price, 
-            // avg_price,
             state,
-            // market,
-            // created_at,
-            // volume,
-            // remaining_volume,
-            // executed_volume,
-            // trades_count,
         } = order;
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const datetime = this.iso8601(timestamp);
@@ -267,7 +258,7 @@ module.exports = class coinfield extends Exchange {
         const price = this.safeFloat(order, 'price');
         const average = this.safeFloat(order, 'avg_price');
         const amount = this.safeFloat(order, 'volume');
-        const cost = price * amount;
+        const cost = Number(order.price) * Number(order.volume);
         const remaining = this.safeFloat(order, 'remaining_volume');
         const filled = this.safeFloat(order, 'executed_volume');
         return {
@@ -289,6 +280,30 @@ module.exports = class coinfield extends Exchange {
             'info': order,
         }
     }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a `symbol` argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'limit': limit ? limit : 50,
+        };
+
+        const response = await this.privateGetTradeHistoryMarket (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    // async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    //     await this.loadMarkets ();
+    //     const response = await this.privatePostOrder();
+    //     return {
+    //         'id': id,
+    //         'info': response,
+    //     }
+    // }
 
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         console.log(
