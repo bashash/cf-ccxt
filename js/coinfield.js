@@ -461,7 +461,7 @@ module.exports = class coinfield extends Exchange {
                     'Authorization': 'Bearer ' + this.apiKey,
                 }
                 if (Object.values(params).length) {
-                    body = this.createBody(params);                    
+                    body = this.json(this.createBody(params));                    
                 }
             } else {
                 headers = {
