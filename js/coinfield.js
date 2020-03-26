@@ -372,6 +372,7 @@ module.exports = class coinfield extends Exchange {
             immediate,
             timeInForce,
         } = params;
+        let body;
         if (strategy === 'market') {
             body = type === 'bid' 
                 ? {
