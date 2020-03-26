@@ -1061,7 +1061,7 @@ module.exports = class Exchange {
                 Object.values (array).slice (-limit) :
                 Object.values (array).slice (0, limit))
         }
-        console.log("HEREEEEE", array, "field", field, "value", value)
+
         return array
     }
 
