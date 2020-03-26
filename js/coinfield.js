@@ -364,14 +364,26 @@ module.exports = class coinfield extends Exchange {
             market,
             type,
             strategy,
-            funds,
-            volume,
-            price,
-            stop_price,
             expiry,
             immediate,
             timeInForce,
         } = params;
+        let funds;
+        if (params.funds !== undefined) {
+            funds = this.safeString(params, 'funds');
+        }
+        let volume;
+        if (params.volume !== undefined) {
+            funds = this.safeString(params, 'volume');
+        }
+        let price;
+        if (params.price !== undefined) {
+            price = this.safeString(params, 'price');
+        }
+        let stop_price;
+        if (stop_price !== undefined) {
+            stop_price = this.safeString(params, 'stop_price');
+        }
         let body;
         if (strategy === 'market') {
             body = type === 'bid' 
@@ -379,13 +391,13 @@ module.exports = class coinfield extends Exchange {
                     'market': market,
                     'type': type,
                     'strategy': strategy,
-                    'funds': typeof funds === 'number' ? String(funds) : funds,
+                    'funds': funds,
                 }
                 : {
                     'market': market,
                     'type': type,
                     'strategy': strategy,
-                    'volume': typeof volume === 'number' ? String(volume) : volume,
+                    'volume': volume,
                 }
         } else if (strategy === 'limit') {
             body = timeInForce 
@@ -393,7 +405,7 @@ module.exports = class coinfield extends Exchange {
                     'market': market,
                     'type': type,
                     'strategy': strategy,
-                    'volume': typeof volume === 'number' ? String(volume) : volume,
+                    'volume': volume,
                     'price': price,
                     'immediate': immediate,
                 }
@@ -401,7 +413,7 @@ module.exports = class coinfield extends Exchange {
                     'market': market,
                     'type': type,
                     'strategy': strategy,
-                    'volume': typeof volume === 'number' ? String(volume) : volume,
+                    'volume': volume,
                     'price': price,
                     'expiry': expiry,
                     'immediate': immediate,
@@ -412,7 +424,7 @@ module.exports = class coinfield extends Exchange {
                     'market': market,
                     'type': type,
                     'strategy': strategy,
-                    'volume': typeof volume === 'number' ? String(volume) : volume,
+                    'volume': volume,
                     'price': price,
                     'stop_price': stop_price,
                     'immediate': immediate,
@@ -421,7 +433,7 @@ module.exports = class coinfield extends Exchange {
                     'market': market,
                     'type': type,
                     'strategy': strategy,
-                    'volume': typeof volume === 'number' ? String(volume) : volume,
+                    'volume': volume,
                     'price': price,
                     'stop_price': stop_price,
                     'expiry': expiry,
