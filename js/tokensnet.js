@@ -198,33 +198,27 @@ module.exports = class tokensnet extends Exchange {
         await this.loadMarkets();
         //private/balance/all/
         const response = await this.privateGetPrivateBalanceAll();
-        console.log(response)
-        // const balances = this.safeValue (response, 'wallets');
-        // const result = { 'info': response };
-        // for (let i = 0; i < balances.length; i++) {
-        //     const balance = balances[i];
-        //     const currencyId = this.safeString (balance, 'currency');
-        //     const code = this.safeCurrencyCode (currencyId);
-        //     const account = this.account ();
-        //     account['total'] = this.safeFloat (balance, 'balance');
-        //     account['used'] = this.safeFloat (balance, 'locked');
-        //     result[code] = account;
-        // }
-        // return this.parseBalance (result);
+        const balances = Object.values(this.safeValue (response, 'balances'));
+        const currencies = Object.keys(balances);
+
+        const result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currency = currencies[i];
+            const currencyId = currency.toLowerCase();
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeFloat (balance, 'balance');
+            account['available'] = this.safeFloat (balance, 'available');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
     }
 
     createSignature () {
         const nonce = this.nonce ().toString ();
         const message = nonce + this.apiKey;
         const signature = this.hmac (this.encode (message), this.encode (this.secret), 'sha256', 'hex');
-        // const signature = this.hmac (message, this.secret, 'sha256', 'hex');
-        // const signer = crypto.createHmac('sha256', Buffer.from(this.secret, 'utf8'));
-        // const signature = signer.update(message).digest('hex').toUpperCase();
-        console.log(
-            'nonce', nonce,
-            'message', message,
-            'signature', signature,
-        )
         return { 
             signature: signature.toUpperCase(), 
             nonce 
