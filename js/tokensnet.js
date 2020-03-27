@@ -194,7 +194,7 @@ module.exports = class tokensnet extends Exchange {
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 0, 1);
     }
 
-    async fetchBalance(params = {}) {
+    async fetchBalance (params = {}) {
         await this.loadMarkets();
         //private/balance/all/
         const response = await this.privateGetPrivateBalanceAll();
@@ -213,6 +213,63 @@ module.exports = class tokensnet extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const tradingPair = `${market.base}${market.quote}`;
+        const request = {
+            'tradingPair': tradingPair,
+        }
+        const response = await this.privateGetPrivateOrdersGetTradingPair(this.extend(request, params));
+        return this.parseOrders (response.openOrders, market, since, limit);
+    }
+
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
+        let result = Object.values (orders).map (order => this.extend (this.parseOrder (order, market), params))
+        result = this.sortBy (result, 'timestamp')
+        return result;
+    }
+
+    parseOrder (order, market = undefined) {
+        console.log(order)
+        const {
+            id,
+            side,
+            strategy,
+            state,
+        } = order;
+        const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        const datetime = this.iso8601(timestamp);
+        const symbol = this.safeString(order, 'market');  
+        const price = this.safeFloat(order, 'price');
+        const average = this.safeFloat(order, 'avg_price');
+        const amount = this.safeFloat(order, 'volume');
+        const cost = Number(order.price) * Number(order.volume);
+        const remaining = this.safeFloat(order, 'remaining_volume');
+        const filled = this.safeFloat(order, 'executed_volume');
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'lastTradeTimestamp': undefined,
+            'status': state,
+            'symbol': symbol,
+            'type': strategy,
+            'side': side,
+            'price': price,
+            'average': average,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': undefined,
+            'info': order,
+        }
     }
 
     createSignature () {
