@@ -215,7 +215,7 @@ module.exports = class tokensnet extends Exchange {
 
     createSignature () {
         const nonce = this.nonce ().toString ();
-        const message = nonce + this.apiKey;
+        const message = nonce + '000' + this.apiKey;
         // let auth = '';
         // auth += message;
         const signature = this.hmac (this.encode (message), this.encode (this.secret), 'sha256');
