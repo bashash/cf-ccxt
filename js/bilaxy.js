@@ -176,66 +176,59 @@ module.exports = class bilaxy extends Exchange {
         }
     }
 
-    // async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-    //     await this.loadMarkets();
-    //     const market = this.marketId(symbol);
-    //     const request = {
-    //         'market': market,
-    //         // 'limit': limit ? limit : '',
-    //         // 'symbol': market['id'],
-    //     };
-    //     const response = await this.publicGetTradesMarket(request);
-    //     const trades = response.trades;
-    //     const result = [];
-    //     for (let i = 0; i < trades.length; i++) {
-    //         const trade = trades[i];
-    //         result.push({
-    //             ...trade,
-    //             symbol,
-    //         });
-    //     }
-    //     return this.parseTrades(result, symbol, since, limit);
-    // }
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = {
+            'pair': symbol.replace('/', '_'),
+            'limit': limit ? limit : 100,
+        };
+        const trades = await this.publicGetTrades(this.extend(request, params));
+        const result = [];
+        for (let i = 0; i < trades.length; i++) {
+            const trade = trades[i];
+            result.push({
+                ...trade,
+                symbol,
+            });
+        }
+        return this.parseTrades(result, symbol, since, limit);
+    }
 
-    // parseTrade (trade, market = undefined) {
-    //     const id = this.safeString (trade, 'id');
-    //     const timestamp = new Date(trade.timestamp).getTime();
-    //     const datetime = this.iso8601(timestamp);
-    //     const amount = trade.volume;
-    //     const price = trade.price;
-    //     let cost = undefined;
-    //     if (amount !== undefined) {
-    //         if (price !== undefined) {
-    //             cost = price * amount;
-    //         }
-    //     }
-    //     return {
-    //         'id': id,
-    //         'info': trade,
-    //         'timestamp': timestamp,
-    //         'datetime': datetime,
-    //         'symbol': market,
-    //         'order': id,
-    //         'type': undefined,
-    //         'side': undefined,
-    //         'takerOrMaker': undefined,
-    //         'price': Number(price),
-    //         'amount': Number(amount),
-    //         'cost': cost,
-    //         'fee': undefined,
-    //     };
-    // }
+    parseTrade (trade, market = undefined) {
+        const id = this.safeString (trade, 'id');
+        const timestamp = trade.ts;
+        const datetime = this.iso8601(timestamp);
+        const amount = this.safeString (trade, 'amount');
+        const price = this.safeString (trade, 'price');
+        const cost = this.safeString (trade, 'total');
+        const side = this.safeString (trade, 'direction');
 
-    // async fetchOrderBook (symbol, limit = undefined, params = {}) {
-    //     await this.loadMarkets ();
-    //     const request = {
-    //         'market': this.marketId (symbol),
-    //         // 'type': 'step0',
-    //     };
-    //     const orderbook = await this.publicGetOrderbookMarket (request);
-    //     const { timestamp } = orderbook;
-    //     return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'volume');
-    // }
+        return {
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'symbol': market,
+            'order': id,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': Number(price),
+            'amount': Number(amount),
+            'cost': cost,
+            'fee': undefined,
+        };
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'pair': symbol.replace('/', '_'),
+        };
+        const orderbook = await this.publicGetOrderbook (request);
+        const { timestamp } = orderbook;
+        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 0, 1);
+    }
 
     // async fetchOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
     //     if (symbol === undefined) {
@@ -390,6 +383,12 @@ module.exports = class bilaxy extends Exchange {
         let request = '/';
         request += path;
         // request += this.implodeParams (path, params);
+        if (method === 'GET') {
+            if (Object.keys (params).length) {
+                request += '?' + this.urlencode (params);
+            }
+        }
+
         if (api === 'private') {
             if (method === 'POST') {
                 // headers = {
