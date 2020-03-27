@@ -236,36 +236,48 @@ module.exports = class tokensnet extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        console.log(order)
+        // {
+        //     "amount": "1.23456789",
+        //     "created": 1234567890,
+        //     "currencyPair": "btcusdt",
+        //     "id": "01234567-89ab-cdef-0123-456789abcdef",
+        //     "orderStatus": "open",
+        //     "price": "3456.78",
+        //     "remainingAmount": "1.23456789",
+        //     "status": "ok",
+        //     "takeProfit": "3456.78",
+        //     "timestamp": 1234567890,
+        //     "trades": [
+        //     {}
+        //     ],
+        //     "type": "buy"
+        //     }
         const {
             id,
-            side,
-            strategy,
-            state,
+            type,
+            orderStatus,
         } = order;
-        const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        const timestamp = this.parse8601 (this.safeString (order, 'created'));
         const datetime = this.iso8601(timestamp);
-        const symbol = this.safeString(order, 'market');  
+        const symbol = this.safeString(order, 'currencyPair"');  
         const price = this.safeFloat(order, 'price');
-        const average = this.safeFloat(order, 'avg_price');
-        const amount = this.safeFloat(order, 'volume');
-        const cost = Number(order.price) * Number(order.volume);
-        const remaining = this.safeFloat(order, 'remaining_volume');
-        const filled = this.safeFloat(order, 'executed_volume');
+        const amount = this.safeFloat(order, 'amount');
+        const cost = Number(order.price) * Number(order.amount);
+        const remaining = this.safeFloat(order, 'remainingAmount');
         return {
             'id': id,
             'timestamp': timestamp,
             'datetime': datetime,
             'lastTradeTimestamp': undefined,
-            'status': state,
+            'status': orderStatus,
             'symbol': symbol,
-            'type': strategy,
-            'side': side,
+            'type': type,
+            'side': type,
             'price': price,
-            'average': average,
+            'average': undefined,
             'cost': cost,
             'amount': amount,
-            'filled': filled,
+            'filled': undefined,
             'remaining': remaining,
             'fee': undefined,
             'info': order,
