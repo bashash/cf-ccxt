@@ -216,8 +216,8 @@ module.exports = class tokensnet extends Exchange {
     createSignature () {
         const nonce = this.nonce ().toString ();
         const message = nonce + this.apiKey;
-        // const signature = this.hmac (this.encode (message), this.encode (this.secret), 'sha256', 'hex');
-        const signature = this.hmac (message, this.secret, 'sha256', 'hex');
+        const signature = this.hmac (this.encode (message), this.encode (this.secret), 'sha256', 'hex');
+        // const signature = this.hmac (message, this.secret, 'sha256', 'hex');
         // const signer = crypto.createHmac('sha256', Buffer.from(this.secret, 'utf8'));
         // const signature = signer.update(message).digest('hex').toUpperCase();
         console.log(
@@ -225,7 +225,10 @@ module.exports = class tokensnet extends Exchange {
             'message', message,
             'signature', signature,
         )
-        return { signature, nonce };
+        return { 
+            signature: signature.toUpperCase(), 
+            nonce 
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
