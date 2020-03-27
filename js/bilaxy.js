@@ -21,7 +21,7 @@ module.exports = class bilaxy extends Exchange {
                 'fetchTrades': true,
                 'fetchMarkets': true,
                 'fetchTicker': true,
-                // 'fetchTickers': true,
+                'fetchTickers': true,
                 //private
                 'fetchOrders': true,
                 'fetchMyTrades': true,
@@ -34,7 +34,7 @@ module.exports = class bilaxy extends Exchange {
             },
             'urls': {
                 'logo': 'https://avatars2.githubusercontent.com/u/58157269?s=400&u=0c535058316c0f03287519950ef5f2d61ce27093&v=4',
-                'api': 'https://newapi.bilaxy.com/v1/',
+                'api': 'https://newapi.bilaxy.com/v1',
                 'www': 'https://bilaxy.com/',
                 'doc': 'https://github.com/bilaxy-exchange/bilaxy-api-docs',
             },
@@ -43,7 +43,7 @@ module.exports = class bilaxy extends Exchange {
                     'get': [
                         'pairs',
                         'orderbook',
-                        'tickers/24hr',
+                        'ticker/24hr',
                         'trades'
                     ]
                 },
@@ -62,35 +62,43 @@ module.exports = class bilaxy extends Exchange {
         });
     }
 
-    // async fetchMarkets() {
-    //     const response = await this.publicGetMarkets();
-    //     const markets = response.markets;
-    //     const result = [];
-    //     for (let i = 0; i < markets.length; i++) {
-    //         let market = markets[i];
-    //         let id = market.id;
-    //         let symbol = market.name;
-    //         let base = market.ask_unit;
-    //         let quote = market.bid_unit;
+    async fetchMarkets() {
+        const response = await this.publicGetPairs();
+        const result = [];
+        const markets = Object.values(response);
 
-    //         result.push({
-    //             'id': id,
-    //             'symbol': symbol,
-    //             'base': base,
-    //             'quote': quote,
-    //             'ask_precision': market.ask_precision,
-    //             'bid_precision': market.bid_precision,
-    //             'minimum_volume': market.minimum_volume,
-    //             'maximum_volume': market.maximum_volume,
-    //             'minimum_funds': market.minimum_funds,
-    //             'maximum_funds': market.maximum_funds,
-    //             'minimum_level': markets.minimum_level,
-    //             'restricted_countries': markets.restricted_countries,
-    //             'info': market,
-    //         });
-    //     }
-    //     return result;
-    // }
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
+            let id = market.pair_id;
+            let symbol = `${market.base}/${market.quote}`;
+            let base = this.safeString (market, 'base');
+            let quote = this.safeString (market, 'quote');
+            let price_precision = this.safeString (market, 'price_precision');
+            let amount_precision = this.safeString (market, 'amount_precision');
+            let min_amount = this.safeString (market, 'min_amount');
+            let max_amount = this.safeString (market, 'max_amount');
+            let min_total = this.safeString (market, 'min_total');
+            let max_total = this.safeString (market, 'max_total');
+            const { trade_enabled, closed } = market;
+            
+            result.push({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'price_precision': price_precision,
+                'amount_precision': amount_precision,
+                'min_amount': min_amount,
+                'max_amount': max_amount,
+                'min_total': min_total,
+                'max_total': max_total,
+                'trade_enabled': trade_enabled,
+                'closed': closed,
+                'info': market,
+            });
+        }
+        return result;
+    }
 
     // async fetchBalance(params = {}) {
     //     await this.loadMarkets();
@@ -109,46 +117,64 @@ module.exports = class bilaxy extends Exchange {
     //     return this.parseBalance (result);
     // }
 
-    // async fetchTicker(symbol, params = {}) {
-    //     await this.loadMarkets();
-    //     const request = {
-    //         'market': this.marketId(symbol),
-    //     };
-    //     const response = await this.publicGetTickersMarket(request);
-    //     const ticker = response.markets;
-    //     const {
-    //         timestamp,
-    //         bid,
-    //         ask,
-    //         low,
-    //         high,
-    //         last,
-    //         open,
-    //         vol,
-    //     } = ticker[0];
-    //     return {
-    //         'symbol': symbol,
-    //         'timestamp': timestamp,
-    //         'datetime': timestamp,
-    //         'bid': bid,
-    //         'bidVolume': undefined,
-    //         'ask': ask,
-    //         'askVolume': undefined,
-    //         'vwap': undefined,
-    //         'low': low,
-    //         'high': high,
-    //         'last': last,
-    //         'open': open,
-    //         'close': last,
-    //         'previousClose': undefined,
-    //         'change': undefined,
-    //         'percentage': undefined,
-    //         'average': undefined,
-    //         'baseVolume': undefined,
-    //         'quoteVolume': vol,
-    //         'info': ticker,
-    //     };
-    // }
+    async fetchTickers (symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        const response = await this.publicGetTicker24hr();
+        const tickers = Object.values(response);
+        const symbols = Object.keys(response);
+   
+        return this.parseTickers(tickers, symbols);
+    }
+
+    parseTickers (tickers, symbols = undefined) {
+        const result = [];
+        for (let i = 0; i < tickers.length; i++) {
+            result.push(this.parseTicker (tickers[i], symbols[i]));
+        }
+        return result;
+    }
+
+    async fetchTicker (symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        const response = await this.publicGetTicker24hr();
+        const ticker = response[symbol];
+        return this.parseTicker(ticker, symbol);
+    }
+
+    parseTicker (ticker, symbol = undefined) {
+        let timestamp = new Date().getTime();
+        let datestamp = this.iso8601 (timestamp);
+        let high = this.safeString (ticker, 'height');
+        let open = this.safeString (ticker, 'open');
+        let low = this.safeString (ticker, 'low');
+        let close = this.safeString (ticker, 'close');
+        let baseVolume = this.safeString (ticker, 'base_volume');
+        let quoteVolume = this.safeString (ticker, 'quote_volume');
+        let change = this.safeString (ticker, 'price_change');
+
+        return {
+            'symbol': symbol.replace('_', '/'),
+            'timestamp': timestamp,
+            'datetime': datestamp,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'low': low,
+            'high': high,
+            'last': close,
+            'open': open,
+            'close': close,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        }
+    }
 
     // async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
     //     await this.loadMarkets();
@@ -355,23 +381,31 @@ module.exports = class bilaxy extends Exchange {
     // }
 
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        console.log(
+            'path', path,
+            'api', api,
+            'method', method,
+            'params', params
+        )
         let request = '/';
-        request += this.implodeParams (path, params);
+        request += path;
+        // request += this.implodeParams (path, params);
         if (api === 'private') {
             if (method === 'POST') {
-                headers = {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + this.apiKey,
-                }
-                if (Object.values(params).length) {
-                    body = this.json(this.createBody(params));                    
-                }
+                // headers = {
+                //     'Content-Type': 'application/json',
+                //     'Authorization': 'Bearer ' + this.apiKey,
+                // }
+                // if (Object.values(params).length) {
+                //     body = this.json(this.createBody(params));                    
+                // }
             } else {
-                headers = {
-                    'Authorization': 'Bearer ' + this.apiKey,
-                }
+                // headers = {
+                //     'Authorization': 'Bearer ' + this.apiKey,
+                // }
             }
         }
+
         const url = this.urls['api'] + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
