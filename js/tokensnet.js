@@ -7,7 +7,7 @@ const { ExchangeError, ArgumentsRequired, BadRequest, ExchangeNotAvailable, Auth
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class tokenznet extends Exchange {
+module.exports = class tokensnet extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'tokensnet',
@@ -194,7 +194,42 @@ module.exports = class tokenznet extends Exchange {
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 0, 1);
     }
 
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async fetchBalance(params = {}) {
+        await this.loadMarkets();
+        //private/balance/all/
+        const response = await this.privateGetPrivateBalanceAll();
+        console.log(response)
+        // const balances = this.safeValue (response, 'wallets');
+        // const result = { 'info': response };
+        // for (let i = 0; i < balances.length; i++) {
+        //     const balance = balances[i];
+        //     const currencyId = this.safeString (balance, 'currency');
+        //     const code = this.safeCurrencyCode (currencyId);
+        //     const account = this.account ();
+        //     account['total'] = this.safeFloat (balance, 'balance');
+        //     account['used'] = this.safeFloat (balance, 'locked');
+        //     result[code] = account;
+        // }
+        // return this.parseBalance (result);
+    }
+
+    createSignature () {
+        const nonce = this.nonce ().toString ();
+        const message = nonce + this.apiKey;
+        // let auth = '';
+        // auth += message;
+        const signature = this.hmac (this.encode (message), this.encode (this.secret), 'sha256');
+        // const signer = crypto.createHmac('sha256', Buffer.from(this.secret, 'utf8'));
+        // const signature = signer.update(message).digest('hex').toUpperCase();
+        console.log(
+            'nonce', nonce,
+            'message', message,
+            'signature', signature,
+        )
+        return { signature, nonce };
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         console.log(
             'path', path,
             'api', api,
@@ -203,6 +238,16 @@ module.exports = class tokenznet extends Exchange {
         )
         let request = '/';
         request += this.implodeParams (path, params);
+        if (api === 'private') {
+            this.apiKey = 'L3FctLBYQqVZkiz3gL1Tykuf7WLQxqV5';
+            this.secret = 'Tr3XIzSWYCzAs6X19JYHfzJ1dKtrsqUk';
+            const { signature, nonce } = this.createSignature();
+            headers = {
+                'key': this.apiKey,
+                'nonce': nonce,
+                'signature': signature, 
+            }
+        }
         const url = this.urls['api'] + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
