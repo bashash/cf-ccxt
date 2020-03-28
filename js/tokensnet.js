@@ -284,6 +284,55 @@ module.exports = class tokensnet extends Exchange {
         }
     }
 
+    //private/trades/{tradingPair}/{page}/
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a `symbol` argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const tradingPair = `${market.base}${market.quote}`;
+        const request = {
+            'tradingPair': tradingPair,
+            'page': page ? page : 1,
+        };
+        const response = await this.privateGetPrivateTradesTradingPairPage (this.extend (request, params));
+        return this.parseTrades (response.trades, symbol, since, limit);
+    }
+    
+    parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+        let result = Object.values (trades || []).map ((trade) => this.extend (this.parseTrade (trade, market), params))
+        result = this.sortBy (result, 'timestamp')
+        return result;
+    }
+
+    parseTrade (trade, market = undefined) {
+        const {
+            id,
+            type,
+            datetime,
+        } = trade;
+        const symbol = market;
+        const price = this.safeFloat(trade, 'price');
+        const amount = this.safeFloat(trade, 'amount');
+        const cost = this.safeFloat(trade, 'total_value');
+        return {
+            'id': id,
+            'timestamp': datetime,
+            'datetime': this.iso8601(datetime),
+            'symbol': symbol,
+            'order': undefined,
+            'type': type,
+            'side': type,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+            'info': trade,
+        };
+    }
+
     createSignature () {
         const nonce = this.nonce ().toString ();
         const message = nonce + this.apiKey;
