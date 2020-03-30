@@ -404,7 +404,7 @@ module.exports = class tokensnet extends Exchange {
                 'signature': signature, 
             }
             if (method === 'POST') {
-                if (path === 'private/orders/cancel/{orderId}/') {
+                if (path !== 'private/orders/cancel/{orderId}/') {
                     if (Object.values(params).length) {
                         body = this.json(this.createBody(params));                    
                     }
