@@ -430,12 +430,13 @@ module.exports = class tokensnet extends Exchange {
                             takeProfit,
                             expireDate,
                         } = params;
-                        body = `tradingPair=${tradingPair}&side=${side}&amount=${amount}&price=${price}&takeProfit=${takeProfit}&expireDate=${expireDate}`;                    
+                        // body = `tradingPair=${tradingPair}&side=${side}&amount=${amount}&price=${price}&takeProfit=${takeProfit}&expireDate=${expireDate}`;
+                        request += `?tradingPair=${tradingPair}&side=${side}&amount=${amount}&price=${price}&takeProfit=${takeProfit}&expireDate=${expireDate}`;                    
                     }
                 }
             }
         }
-        console.log('body', body)
+        // console.log('body', body)
         const url = this.urls['api'] + request;
         console.log('url', url)
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
