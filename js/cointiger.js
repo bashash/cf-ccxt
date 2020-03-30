@@ -314,6 +314,18 @@ module.exports = class cointiger extends Exchange {
         };
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            '0': 'open', // pending
+            '1': 'open',
+            '2': 'closed',
+            '3': 'open',
+            '4': 'canceled',
+            '6': 'error',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
         const id = this.safeString (order, 'id');
         let side = this.safeStringLower (order, 'side');
