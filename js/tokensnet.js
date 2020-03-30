@@ -343,40 +343,11 @@ module.exports = class tokensnet extends Exchange {
             'amount': amount,
             'price': price,
         };
-        console.log("REQUEST", request)
         const response = await this.privatePostPrivateOrdersAddLimit(this.extend(request, params));
-        console.log("HEREEEEEEe", response)
         const { orderId } = response;
         return {
             'id': orderId,
             'info': response,
-        }
-    }
-
-    createBody (params) {
-        // let takeProfit;
-        // if (params.takeProfit !== undefined) {
-        //     takeProfit = this.safeString(params, 'takeProfit');
-        // }
-        // let expireDate;
-        // if (params.expireDate !== undefined) {
-        //     expireDate = this.safeString(params, 'expireDate');
-        // }
-        const {
-            tradingPair,
-            side,
-            amount,
-            price,
-            takeProfit,
-            expireDate,
-        } = params;
-        return {
-            'tradingPair': tradingPair,
-            'side': side,
-            'amount': amount,
-            'price': price,
-            'takeProfit': takeProfit,
-            'expireDate': expireDate,
         }
     }
 
@@ -399,17 +370,9 @@ module.exports = class tokensnet extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        console.log(
-            'path', path,
-            'api', api,
-            'method', method,
-            'params', params
-        )
         let request = '/';
         request += this.implodeParams (path, params);
         if (api === 'private') {
-            this.apiKey = 'VsXpFFI31IAKlqJyUWBiVGO5YSX4bgRi';
-            this.secret = 'g3QphLqfr4l0hnCol5gm6s1zw6Tx9tbJ';
             const { signature, nonce } = this.createSignature();
             headers = {
                 'key': this.apiKey,
@@ -418,7 +381,6 @@ module.exports = class tokensnet extends Exchange {
             }
             if (method === 'POST') {
                 if (path === 'private/orders/add/limit') {
-                    console.log("waht is path?", path)
                     if (Object.values(params).length) {
                         const {
                             tradingPair,
@@ -428,14 +390,18 @@ module.exports = class tokensnet extends Exchange {
                             takeProfit,
                             expireDate,
                         } = params;
-                        request += `?tradingPair=${tradingPair}&side=${side}&amount=${amount}&price=${price}&takeProfit=${takeProfit}&expireDate=${expireDate}`;                    
+                        if (takeProfit && !expireDate) {
+                            request += `?tradingPair=${tradingPair}&side=${side}&amount=${amount}&price=${price}&takeProfit=${takeProfit}`;                    
+                        } else if (!takeProfit && expireDate) {
+                            request += `?tradingPair=${tradingPair}&side=${side}&amount=${amount}&price=${price}&texpireDate=${expireDate}`;                    
+                        } else if (takeProfit && expireDate) {
+                            request += `?tradingPair=${tradingPair}&side=${side}&amount=${amount}&price=${price}&takeProfit=${takeProfit}&expireDate=${expireDate}`;                    
+                        }
                     }
                 }
             }
         }
-        // console.log('body', body)
         const url = this.urls['api'] + request;
-        console.log('url', url)
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
