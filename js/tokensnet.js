@@ -333,6 +333,46 @@ module.exports = class tokensnet extends Exchange {
         };
     }
 
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const tradingPair = `${market.base}${market.quote}`;
+        const request = {
+            'tradingPair': tradingPair,
+            'side': side,
+            'amount': amount,
+            'price': price,
+        };
+        const response = await this.privatePostPrivateOrdersAddLimit(this.extend(request, params));
+        const { orderId } = response;
+        return {
+            'id': orderId,
+            'info': response,
+        }
+    }
+
+    createBody (params) {
+        let takeProfit;
+        if (params.takeProfit !== undefined) {
+            takeProfit = this.safeString(params, 'takeProfit');
+        }
+        if (params.expireDate !== undefined) {
+            expireDate = this.safeString(params, 'expireDate');
+        }
+        return {
+            'takeProfit': takeProfit,
+            'expireDate': expireDate,
+        }
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'orderId': id,
+        };
+        return await this.privatePostPrivateOrdersCancelOrderId (this.extend (request, params));
+    }
+
     createSignature () {
         const nonce = this.nonce ().toString ();
         const message = nonce + this.apiKey;
@@ -360,6 +400,13 @@ module.exports = class tokensnet extends Exchange {
                 'key': this.apiKey,
                 'nonce': nonce,
                 'signature': signature, 
+            }
+            if (method === 'POST') {
+                if (path === 'private/orders/cancel/{orderId}/') {
+                    if (Object.values(params).length) {
+                        body = this.json(this.createBody(params));                    
+                    }
+                }
             }
         }
         const url = this.urls['api'] + request;
