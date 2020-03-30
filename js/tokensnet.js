@@ -358,6 +358,7 @@ module.exports = class tokensnet extends Exchange {
         if (params.takeProfit !== undefined) {
             takeProfit = this.safeString(params, 'takeProfit');
         }
+        let expireDate;
         if (params.expireDate !== undefined) {
             expireDate = this.safeString(params, 'expireDate');
         }
