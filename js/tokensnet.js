@@ -343,7 +343,9 @@ module.exports = class tokensnet extends Exchange {
             'amount': amount,
             'price': price,
         };
+        console.log("REQUEST", request)
         const response = await this.privatePostPrivateOrdersAddLimit(this.extend(request, params));
+        console.log("HEREEEEEEe", response)
         const { orderId } = response;
         return {
             'id': orderId,
