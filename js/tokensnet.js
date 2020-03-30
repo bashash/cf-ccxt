@@ -354,15 +354,27 @@ module.exports = class tokensnet extends Exchange {
     }
 
     createBody (params) {
-        let takeProfit;
-        if (params.takeProfit !== undefined) {
-            takeProfit = this.safeString(params, 'takeProfit');
-        }
-        let expireDate;
-        if (params.expireDate !== undefined) {
-            expireDate = this.safeString(params, 'expireDate');
-        }
+        // let takeProfit;
+        // if (params.takeProfit !== undefined) {
+        //     takeProfit = this.safeString(params, 'takeProfit');
+        // }
+        // let expireDate;
+        // if (params.expireDate !== undefined) {
+        //     expireDate = this.safeString(params, 'expireDate');
+        // }
+        const {
+            tradingPair,
+            side,
+            amount,
+            price,
+            takeProfit,
+            expireDate,
+        } = params;
         return {
+            'tradingPair': tradingPair,
+            'side': side,
+            'amount': amount,
+            'price': price,
             'takeProfit': takeProfit,
             'expireDate': expireDate,
         }
@@ -396,8 +408,8 @@ module.exports = class tokensnet extends Exchange {
         let request = '/';
         request += this.implodeParams (path, params);
         if (api === 'private') {
-            this.apiKey = 'L3FctLBYQqVZkiz3gL1Tykuf7WLQxqV5';
-            this.secret = 'Tr3XIzSWYCzAs6X19JYHfzJ1dKtrsqUk';
+            this.apiKey = 'VsXpFFI31IAKlqJyUWBiVGO5YSX4bgRi';
+            this.secret = 'g3QphLqfr4l0hnCol5gm6s1zw6Tx9tbJ';
             const { signature, nonce } = this.createSignature();
             headers = {
                 'key': this.apiKey,
@@ -405,14 +417,17 @@ module.exports = class tokensnet extends Exchange {
                 'signature': signature, 
             }
             if (method === 'POST') {
-                if (path !== 'private/orders/cancel/{orderId}/') {
+                if (path === 'private/orders/add/limit/') {
+                    console.log("waht is path?", path)
                     if (Object.values(params).length) {
                         body = this.json(this.createBody(params));                    
                     }
                 }
             }
         }
+        console.log('body', body)
         const url = this.urls['api'] + request;
+        console.log('url', url)
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
