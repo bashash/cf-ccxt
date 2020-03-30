@@ -417,11 +417,9 @@ module.exports = class tokensnet extends Exchange {
                 'signature': signature, 
             }
             if (method === 'POST') {
-                if (path === 'private/orders/add/limit/') {
+                if (path === 'private/orders/add/limit') {
                     console.log("waht is path?", path)
                     if (Object.values(params).length) {
-                        // body = this.json(this.createBody(params)); 
-                        //"tradingPair=btcusdt&side=buy&amount=0.1&price=10000.50&takeProfit=11000.50&expireDate=2147483647"                   
                         const {
                             tradingPair,
                             side,
@@ -430,7 +428,6 @@ module.exports = class tokensnet extends Exchange {
                             takeProfit,
                             expireDate,
                         } = params;
-                        // body = `tradingPair=${tradingPair}&side=${side}&amount=${amount}&price=${price}&takeProfit=${takeProfit}&expireDate=${expireDate}`;
                         request += `?tradingPair=${tradingPair}&side=${side}&amount=${amount}&price=${price}&takeProfit=${takeProfit}&expireDate=${expireDate}`;                    
                     }
                 }
