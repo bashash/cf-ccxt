@@ -34,7 +34,10 @@ module.exports = class bilaxy extends Exchange {
             },
             'urls': {
                 'logo': 'https://avatars2.githubusercontent.com/u/58157269?s=400&u=0c535058316c0f03287519950ef5f2d61ce27093&v=4',
-                'api': 'https://newapi.bilaxy.com/v1',
+                'api': {
+                    "public": 'https://newapi.bilaxy.com/v1',
+                    "private": 'https://api.bilaxy.com/v1',
+                },
                 'www': 'https://bilaxy.com/',
                 'doc': 'https://github.com/bilaxy-exchange/bilaxy-api-docs',
             },
@@ -100,22 +103,22 @@ module.exports = class bilaxy extends Exchange {
         return result;
     }
 
-    // async fetchBalance(params = {}) {
-    //     await this.loadMarkets();
-    //     const response = await this.privateGetWallets();
-    //     const balances = this.safeValue (response, 'wallets');
-    //     const result = { 'info': response };
-    //     for (let i = 0; i < balances.length; i++) {
-    //         const balance = balances[i];
-    //         const currencyId = this.safeString (balance, 'currency');
-    //         const code = this.safeCurrencyCode (currencyId);
-    //         const account = this.account ();
-    //         account['total'] = this.safeFloat (balance, 'balance');
-    //         account['used'] = this.safeFloat (balance, 'locked');
-    //         result[code] = account;
-    //     }
-    //     return this.parseBalance (result);
-    // }
+    async fetchBalance () {
+        await this.loadMarkets();
+        const response = await this.privateGetBalances();
+        const balances = this.safeValue (response, 'data');
+        const result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'name');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'frozen');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
+    }
 
     async fetchTickers (symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -373,7 +376,12 @@ module.exports = class bilaxy extends Exchange {
     //     return await this.privateDeleteOrdersMarket (this.extend (request, params));
     // }
 
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    createSignature () {
+        const signature = this.hmac (this.encode (this.apiKey), this.encode (this.secret), 'sha1');
+        return signature;
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         console.log(
             'path', path,
             'api', api,
@@ -383,14 +391,16 @@ module.exports = class bilaxy extends Exchange {
         let request = '/';
         request += path;
         // request += this.implodeParams (path, params);
-        if (method === 'GET') {
-            if (Object.keys (params).length) {
-                request += '?' + this.urlencode (params);
-            }
-        }
 
         if (api === 'private') {
-            if (method === 'POST') {
+            if (method === 'GET') {
+                this.apiKey = 'a3990470be5064d8882477b0f98819e88';
+                this.secret = '23d802774d5b51df4a01c5831110c83b';
+                const signature = this.createSignature();
+                console.log("signature", signature)
+                request += '?' + this.urlencode ({ key: this.apiKey, sign: signature });
+                console.log("REQUEST", request)
+            } else if (method === 'POST') {
                 // headers = {
                 //     'Content-Type': 'application/json',
                 //     'Authorization': 'Bearer ' + this.apiKey,
@@ -403,9 +413,14 @@ module.exports = class bilaxy extends Exchange {
                 //     'Authorization': 'Bearer ' + this.apiKey,
                 // }
             }
+        } else {
+            if (Object.keys (params).length) {
+                request += '?' + this.urlencode (params);
+            }
         }
 
         const url = this.urls['api'] + request;
+        console.log("url", url)
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
