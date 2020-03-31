@@ -426,15 +426,15 @@ module.exports = class cointiger extends Exchange {
         return result;
     }
 
-    async cancelOrders (id, symbol = undefined, params = {}) {
+    async cancelOrder (ids, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
         }
         const market = this.market (symbol);
         const marketId = market['id'];
         const orderIdList = {};
-        orderIdList[marketId] = ids;
+        orderIdList[marketId] = typeof ids === 'string' ? [ ids ] : ids;
         const request = {
             'orderIdList': this.json (orderIdList),
         };
