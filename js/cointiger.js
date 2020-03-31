@@ -23,6 +23,7 @@ module.exports = class cointiger extends Exchange {
                 'fetchTicker': true,
                 // 'fetchTickers': true,
                 //private
+                'fetchOpenOrders': true,
                 'fetchOrders': true,
                 'fetchMyTrades': true,
                 'createOrder': true,
