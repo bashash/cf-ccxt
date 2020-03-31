@@ -486,7 +486,6 @@ module.exports = class coinfield extends Exchange {
             }
         }
         const url = this.urls['api'] + request;
-        console.log(url)
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
