@@ -379,11 +379,11 @@ module.exports = class bilaxy extends Exchange {
 
     createSignature () {
         let params = [
-            'key=' + this.apiKey,
             'secret=' + this.secret,
+            'key=' + this.apiKey,
         ].join('&');
         console.log("params    ", params)
-        const signature = this.hmac (this.encode (params), this.encode (this.secret), 'sha1', 'binary');
+        const signature = this.hmac (this.encode (params), this.encode (this.secret), 'sha1');
         return signature;
     }
 
