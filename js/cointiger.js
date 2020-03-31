@@ -468,6 +468,10 @@ module.exports = class cointiger extends Exchange {
         return this.parseOrders (response['data'], market, since, limit);
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByStatesV2 ('new,part_filled', symbol, since, limit, params);
+    }
+
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const week = 604800000; // milliseconds
         if (symbol === undefined) {
