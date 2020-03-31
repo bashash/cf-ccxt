@@ -419,7 +419,7 @@ module.exports = class bilaxy extends Exchange {
             }
         }
 
-        const url = this.urls['api'] + request;
+        const url = this.urls['api'][api] + request;
         console.log("url", url)
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
