@@ -24,6 +24,7 @@ module.exports = class tokensnet extends Exchange {
                 // 'fetchTickers': true,
                 //private
                 'fetchOrders': true,
+                'fetchOpenOrders': true,
                 'fetchMyTrades': true,
                 'createOrder': true,
                 'cancelOrder': true,
@@ -215,7 +216,21 @@ module.exports = class tokensnet extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const tradingPair = `${market.base}${market.quote}`;
+        const request = {
+            'tradingPair': tradingPair,
+        }
+        const response = await this.privateGetPrivateOrdersGetTradingPair(this.extend(request, params));
+        return this.parseOrders (response.openOrders, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
         }
