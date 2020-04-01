@@ -4,7 +4,7 @@
 
 const Exchange = require('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadRequest, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
-
+const CryptoJS = require ('./static_dependencies/crypto-js');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bilaxy extends Exchange {
@@ -377,13 +377,21 @@ module.exports = class bilaxy extends Exchange {
     //     return await this.privateDeleteOrdersMarket (this.extend (request, params));
     // }
 
+    sha1 (request, secret, hash = 'sha256', digest = 'hex') {
+        const result = CryptoJS[hash.toUpperCase()](request, secret)
+        if (digest) {
+            const encoding = (digest === 'binary') ? 'Latin1' : digest.toUpperCase()
+            return result.toString(CryptoJS.enc[encoding.toUpperCase()])
+        }
+        return result
+    }
+
     createSignature () {
         let params = [
             'key=' + this.apiKey,
             'secret=' + this.secret,
         ].join('&');
-        console.log("params    ", params)
-        const signature = this.hmac (this.encode (params), this.encode (this.secret), 'sha1');
+        const signature = this.sha1 (this.encode (params), this.encode (this.secret), 'sha1');
         return signature;
     }
 
