@@ -242,9 +242,7 @@ module.exports = class coinfield extends Exchange {
             'limit': limit ? limit : 50,
             'state': 'open,pending',
         }
-        console.log(request)
         const response = await this.privateGetOrdersMarket(this.extend(request, params));
-        console.log(response)
         return this.parseOrders (response.orders, market, since, limit);
     }
 
@@ -356,6 +354,7 @@ module.exports = class coinfield extends Exchange {
                 'volume': amount,
                 'price': price,
             };
+        console.log("request", request)
         const response = await this.privatePostOrder(this.extend(request, params));
         const { order } = response;
         const { id } = order;
