@@ -345,14 +345,14 @@ module.exports = class coinfield extends Exchange {
                 'market': this.marketId(symbol),
                 'type': side,
                 'strategy': type,
-                'funds': String(amount),
+                'funds': amount,
             }
             : {
                 'market': this.marketId(symbol),
                 'type': side,
                 'strategy': type,
-                'volume': String(amount),
-                'price': String(price),
+                'volume': amount,
+                'price': price,
             };
         console.log("request", request)
         const response = await this.privatePostOrder(this.extend(request, params));
@@ -393,7 +393,7 @@ module.exports = class coinfield extends Exchange {
         }
         let volume;
         if (params.volume !== undefined) {
-            funds = this.safeString(params, 'volume');
+            volume = this.safeString(params, 'volume');
         }
         let price;
         if (params.price !== undefined) {
