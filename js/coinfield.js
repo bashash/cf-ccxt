@@ -173,12 +173,18 @@ module.exports = class coinfield extends Exchange {
         return this.parseTrades(result, symbol, since, limit);
     }
 
+    // parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+    //     let result = Object.values (trades || []).map ((trade) => this.extend (this.parseTrade (trade, market), params))
+    //     result = this.sortBy (result, 'timestamp')
+    //     return result;
+    // }
+
     parseTrade (trade, market = undefined) {
         const id = this.safeString (trade, 'id');
-        const timestamp = new Date(trade.timestamp).getTime();
+        const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const datetime = this.iso8601(timestamp);
-        const amount = trade.volume;
-        const price = trade.price;
+        const price = this.safeFloat(trade, 'price');
+        const amount = this.safeFloat(trade, 'volume');
         let cost = undefined;
         if (amount !== undefined) {
             if (price !== undefined) {
@@ -195,8 +201,8 @@ module.exports = class coinfield extends Exchange {
             'type': undefined,
             'side': undefined,
             'takerOrMaker': undefined,
-            'price': Number(price),
-            'amount': Number(amount),
+            'price': price,
+            'amount': amount,
             'cost': cost,
             'fee': undefined,
         };
@@ -282,16 +288,16 @@ module.exports = class coinfield extends Exchange {
         };
 
         const response = await this.privateGetTradeHistoryMarket (this.extend (request, params));
-        return this.parseTrades (response.trades, symbol, since, limit);
+        return this.parseMyTrades (response.trades, symbol, since, limit);
     }
 
-    parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = Object.values (trades || []).map ((trade) => this.extend (this.parseTrade (trade, market), params))
+    parseMyTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+        let result = Object.values (trades || []).map ((trade) => this.extend (this.parseMyTrade (trade, market), params))
         result = this.sortBy (result, 'timestamp')
         return result;
     }
 
-    parseTrade (trade, market = undefined) {
+    parseMyTrade (trade, market = undefined) {
         const {
             id,
             side,
