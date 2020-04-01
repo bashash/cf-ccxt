@@ -230,7 +230,7 @@ module.exports = class coinfield extends Exchange {
         return this.parseOrders (response.orders, market, since, limit);
     }
 
-    async fetchOpenOrders () {
+    async fetchOpenOrders (symbol, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
         }
