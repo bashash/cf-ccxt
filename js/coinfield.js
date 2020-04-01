@@ -236,13 +236,14 @@ module.exports = class coinfield extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market(symbol);
-        const marketName = this.marketId(symbol)
+        const marketName = this.marketId(symbol);
         const request = {
             'market': marketName,
             'limit': limit ? limit : 50,
             'state': 'open',
         }
         const response = await this.privateGetOrdersMarket(this.extend(request, params));
+        console.log(response)
         return this.parseOrders (response.orders, market, since, limit);
     }
 
