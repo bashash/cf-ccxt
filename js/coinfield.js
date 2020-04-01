@@ -236,11 +236,11 @@ module.exports = class coinfield extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market(symbol);
-        const marketName = this.marketId(symbol)
+        const marketName = this.marketId(symbol);
         const request = {
             'market': marketName,
             'limit': limit ? limit : 50,
-            'state': 'open',
+            'state': 'open,pending',
         }
         const response = await this.privateGetOrdersMarket(this.extend(request, params));
         return this.parseOrders (response.orders, market, since, limit);
@@ -297,6 +297,7 @@ module.exports = class coinfield extends Exchange {
         const request = {
             'market': market['id'],
             'limit': limit ? limit : 50,
+            'since': since ? since : '',
         };
 
         const response = await this.privateGetTradeHistoryMarket (this.extend (request, params));
@@ -392,7 +393,7 @@ module.exports = class coinfield extends Exchange {
         }
         let volume;
         if (params.volume !== undefined) {
-            funds = this.safeString(params, 'volume');
+            volume = this.safeString(params, 'volume');
         }
         let price;
         if (params.price !== undefined) {
@@ -479,6 +480,22 @@ module.exports = class coinfield extends Exchange {
                 }
                 const { side } = params;
                 request += `?side=${side}`
+            } else  if (path === 'orders/{market}') {
+                if (Object.values(params).length) {
+                    const { limit, state } = params;
+                    request += state ? `?limit=${limit}&state=${state}` : `?limit=${limit}`;
+                }
+                headers = {
+                    'Authorization': 'Bearer ' + this.apiKey,
+                }
+            } else if (path === 'trade-history/{market}') {
+                if (Object.values(params).length) {
+                    const { limit, since } = params;
+                    request += since ? `?limit=${limit}&from=${Number(since)}` : `?limit=${limit}`;
+                }
+                headers = {
+                    'Authorization': 'Bearer ' + this.apiKey,
+                }
             } else {
                 headers = {
                     'Authorization': 'Bearer ' + this.apiKey,
