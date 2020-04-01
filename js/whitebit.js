@@ -699,12 +699,12 @@ module.exports = class whitebit extends Exchange {
         const request = {
             'market': market['id'],
         };
-        if (limit !== undefined) {
-            symbol['limit'] = limit;
-        }
-        if (since !== undefined) {
-            symbol['since'] = limit;
-        }
+        // if (limit !== undefined) {
+        //     symbol['limit'] = limit;
+        // }
+        // if (since !== undefined) {
+        //     symbol['since'] = limit;
+        // }
         const orders = await this.privateV1PostOrders (this.extend (request, params));
         return this.parseOrders (orders, market, since, limit, params);
     }
