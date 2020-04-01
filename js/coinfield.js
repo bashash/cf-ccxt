@@ -243,7 +243,6 @@ module.exports = class coinfield extends Exchange {
             'state': 'open,pending',
         }
         const response = await this.privateGetOrdersMarket(this.extend(request, params));
-        console.log(response)
         return this.parseOrders (response.orders, market, since, limit);
     }
 
@@ -298,6 +297,7 @@ module.exports = class coinfield extends Exchange {
         const request = {
             'market': market['id'],
             'limit': limit ? limit : 50,
+            'since': since ? since : '',
         };
 
         const response = await this.privateGetTradeHistoryMarket (this.extend (request, params));
@@ -355,7 +355,6 @@ module.exports = class coinfield extends Exchange {
                 'volume': amount,
                 'price': price,
             };
-        console.log("request", request)
         const response = await this.privatePostOrder(this.extend(request, params));
         const { order } = response;
         const { id } = order;
@@ -485,6 +484,14 @@ module.exports = class coinfield extends Exchange {
                 if (Object.values(params).length) {
                     const { limit, state } = params;
                     request += state ? `?limit=${limit}&state=${state}` : `?limit=${limit}`;
+                }
+                headers = {
+                    'Authorization': 'Bearer ' + this.apiKey,
+                }
+            } else if (path === 'trade-history/{market}') {
+                if (Object.values(params).length) {
+                    const { limit, since } = params;
+                    request += since ? `?limit=${limit}&from=${Number(since)}` : `?limit=${limit}`;
                 }
                 headers = {
                     'Authorization': 'Bearer ' + this.apiKey,
