@@ -23,6 +23,7 @@ module.exports = class cointiger extends Exchange {
                 'fetchTicker': true,
                 // 'fetchTickers': true,
                 //private
+                'fetchOpenOrders': true,
                 'fetchOrders': true,
                 'fetchMyTrades': true,
                 'createOrder': true,
@@ -314,6 +315,18 @@ module.exports = class cointiger extends Exchange {
         };
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            '0': 'open', // pending
+            '1': 'open',
+            '2': 'closed',
+            '3': 'open',
+            '4': 'canceled',
+            '6': 'error',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
         const id = this.safeString (order, 'id');
         let side = this.safeStringLower (order, 'side');
@@ -413,15 +426,15 @@ module.exports = class cointiger extends Exchange {
         return result;
     }
 
-    async cancelOrders (id, symbol = undefined, params = {}) {
+    async cancelOrder (ids, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
         }
         const market = this.market (symbol);
         const marketId = market['id'];
         const orderIdList = {};
-        orderIdList[marketId] = ids;
+        orderIdList[marketId] = typeof ids === 'string' ? [ ids ] : ids;
         const request = {
             'orderIdList': this.json (orderIdList),
         };
@@ -454,6 +467,10 @@ module.exports = class cointiger extends Exchange {
         };
         const response = await this.apiV2PrivateGetOrderOrders (this.extend (request, params));
         return this.parseOrders (response['data'], market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByStatesV2 ('new,part_filled', symbol, since, limit, params);
     }
 
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
