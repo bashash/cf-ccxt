@@ -284,11 +284,11 @@ module.exports = class bilaxy extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        const { id, status } = order;
+        const { id } = order;
         const timestamp = new Date(this.safeString (order, 'datetime')).getTime();
         const datetime = this.iso8601(timestamp);
         const symbol = market;
-        const status = this.parseOrderStatus(status);
+        const status = this.parseOrderStatus(order.status);
         const price = this.safeFloat(order, 'price');
         const side = this.safeString(order, 'type');
         const amount = this.safeFloat(order, 'amount');
@@ -300,7 +300,7 @@ module.exports = class bilaxy extends Exchange {
             'timestamp': timestamp,
             'datetime': datetime,
             'lastTradeTimestamp': undefined,
-            'status': state,
+            'status': status,
             'symbol': symbol,
             'type': undefined,
             'side': side,
