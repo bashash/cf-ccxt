@@ -375,9 +375,9 @@ module.exports = class coinfield extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` argument');
         }
         await this.loadMarkets ();
-        const request = {
-            'market': this.marketId (symbol),
-        };
+        const request = id === 'all' 
+            ? { 'market': this.marketId (symbol) }
+            : { 'id': id };
         
         return id === 'all' 
             ? await this.privateDeleteOrdersMarket (this.extend (request, params))
