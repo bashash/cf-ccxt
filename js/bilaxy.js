@@ -4,7 +4,7 @@
 
 const Exchange = require('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadRequest, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
-const CryptoJS = require ('./static_dependencies/crypto-js');
+const CryptoJS = require ('./static_dependencies/crypto-js/crypto-js');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bilaxy extends Exchange {
