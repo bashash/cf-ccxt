@@ -414,17 +414,9 @@ module.exports = class bilaxy extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        console.log(
-            'path', path,
-            'api', api,
-            'method', method,
-            'params', params
-        )
         let request = '/';
         request += path;
 
-        this.apiKey = 'a3990470be5064d8882477b0f98819e88';
-        this.secret = '23d802774d5b51df4a01c5831110c83b';
         if (api === 'private') {
             const signature = this.createSignature({ ...params, key: this.apiKey, secret: this.secret });
             request += '?' + this.urlencode ({ ...params, key: this.apiKey, sign: signature });
@@ -435,7 +427,6 @@ module.exports = class bilaxy extends Exchange {
         }
 
         const url = this.urls['api'][api] + request;
-        console.log("url", url)
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
