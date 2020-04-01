@@ -243,6 +243,7 @@ module.exports = class coinfield extends Exchange {
             'state': 'open,pending',
         }
         const response = await this.privateGetOrdersMarket(this.extend(request, params));
+        console.log(response)
         return this.parseOrders (response.orders, market, since, limit);
     }
 
