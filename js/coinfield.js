@@ -345,14 +345,14 @@ module.exports = class coinfield extends Exchange {
                 'market': this.marketId(symbol),
                 'type': side,
                 'strategy': type,
-                'funds': amount,
+                'funds': String(amount),
             }
             : {
                 'market': this.marketId(symbol),
                 'type': side,
                 'strategy': type,
-                'volume': amount,
-                'price': price,
+                'volume': String(amount),
+                'price': String(price),
             };
         console.log("request", request)
         const response = await this.privatePostOrder(this.extend(request, params));
