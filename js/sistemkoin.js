@@ -174,6 +174,24 @@ module.exports = class sistemkoin extends Exchange {
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 0, 1);
     }
 
+    async fetchBalance(symbol) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBalance requires a symbol argument');
+        }
+        const response = await this.privateGetAccountBalance();
+        const balance = this.safeValue (response, 'data');
+        const result = { 'info': response };
+        const currencyId = this.safeString (balance, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['total'] = this.safeFloat (balance, 'amount');
+        account['used'] = this.safeFloat (balance, 'reservedAmount');
+        account['lending'] = this.safeFloat (balance, 'lendingAmount');
+        result[code] = account;
+
+        return this.parseBalance (result);
+    }
+
     createSignature (params) {
         const query = [];
         for (let i in params) {
