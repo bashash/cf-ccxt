@@ -140,7 +140,7 @@ module.exports = class bilaxy extends Exchange {
     async fetchTicker (symbol = undefined, params = {}) {
         await this.loadMarkets();
         const response = await this.publicGetTicker24hr();
-        const ticker = response[symbol];
+        const ticker = response[symbol.replace('_', '/')];
         return this.parseTicker(ticker, symbol);
     }
 
