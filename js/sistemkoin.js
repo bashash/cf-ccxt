@@ -35,8 +35,8 @@ module.exports = class sistemkoin extends Exchange {
             'urls': {
                 'logo': 'https://s2.coinmarketcap.com/static/img/exchanges/64x64/388.png',
                 'api': {
-                        'public': 'https://api.sistemkoin.com/',
-                        'private': 'https://api.sistemkoin.com/api/v1/',
+                        'public': 'https://api.sistemkoin.com',
+                        'private': 'https://api.sistemkoin.com/api/v1',
                     },
                 'www': 'https://sistemkoin.com/',
                 'doc': 'https://github.com/sistemkoin-exchange/sistemkoin-official-api-docs',
