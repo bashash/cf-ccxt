@@ -233,7 +233,7 @@ module.exports = class sistemkoin extends Exchange {
         };
     }
 
-    async fetchBalance(symbol) {
+    async fetchBalance (symbol) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchBalance requires a symbol argument');
         }
@@ -254,6 +254,170 @@ module.exports = class sistemkoin extends Exchange {
 
         return this.parseBalance (result);
     }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+        }
+        const request = {
+            'symbol': symbol,
+            // 'side': side,
+        }
+        const response = await this.privateGetAccountOrders(this.extend(request, params));
+        return this.parseOrders (response.orders, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+        }
+        // await this.loadMarkets ();
+        // const market = this.market(symbol);
+        // const marketName = this.marketId(symbol);
+        const request = {
+            'symbol': symbol,
+            'status': 'PENDING',
+        }
+ 
+        const response = await this.privateGetAccountOrders(this.extend(request, params));
+        return this.parseOrders (response.orders, market, since, limit);
+    }
+
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
+        let result = Object.values (orders).map (order => this.extend (this.parseOrder (order, market), params))
+        // result = this.sortBy (result, 'timestamp')
+        return result;
+    }
+    // "id": 10000
+    //  "coin": "BTC"
+    //  "pairCoin": "TRY"
+    //  "pair": "BTCTRY"
+    //  "average": "70010.00000000"
+    //  "triggerPrice": "70010.00000000"
+    //  "remainingAmount": "0.24583160"
+    //  "amount": "1.00000000"
+    //  "orderStatus": "PENDING"
+    //  "coinPrecision": 8
+    //  "pairCoinPrecision": 2
+    //  "isActive": true
+    parseOrder (order, market = undefined) {
+        const {
+            id,
+        } = order;
+        const timestamp = undefined;
+        const datetime = undefined;
+        const symbol = this.safeString(order, 'pair');  
+        const status = this.safetString(order, 'orderStatus');
+        const price = this.safeFloat(order, 'triggerPrice');
+        const average = this.safeFloat(order, 'average');
+        const amount = this.safeFloat(order, 'amount');
+        const cost = Number(order.triggerPrice) * Number(order.amount);
+        const remaining = this.safeFloat(order, 'remainingAmount');
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': symbol,
+            'type': undefined,
+            'side': side,
+            'price': price,
+            'average': average,
+            'cost': cost,
+            'amount': amount,
+            'filled': undefined,
+            'remaining': remaining,
+            'fee': undefined,
+            'info': order,
+        }
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a `symbol` argument');
+        }
+        const request = {
+            // 'symbol': symbol,
+            // 'limit': limit ? limit : 50,
+            // 'since': since ? since : '',
+        };
+        const response = await this.privateGetAccountTrades (this.extend (request, params));
+        return this.parseMyTrades (response.data, symbol, since, limit);
+    }
+    
+    parseMyTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+        let result = Object.values (trades || []).map ((trade) => this.extend (this.parseMyTrade (trade, market), params))
+        // result = this.sortBy (result, 'timestamp')
+        return result;
+    }
+    // "id": 2627
+    // "coin": "XVG"
+    // "pairCoin": "EUR"
+    // "pair": "XVGEUR"
+    // "amount": "1000.00000000"
+    // "price": "0.12300000"
+    // "coinPrecision": 2
+    // "pairCoinPrecision": 6
+    // "isActive": true
+    parseMyTrade (trade, market = undefined) {
+        const {
+            id,
+        } = trade;
+        const timestamp = undefined;
+        const datetime = undefined;
+        const symbol = this.safeString(trade, 'pair');;
+        // const orderId = this.safeString(trade, 'order_id');
+        const price = this.safeFloat(trade, 'price');
+        const amount = this.safeFloat(trade, 'amount');
+        // const cost = this.safeFloat(trade, 'total_value');
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'symbol': symbol,
+            'order': id,
+            'type': undefined,
+            'side': undefined,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': undefined,
+            'info': trade,
+        };
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request =  {
+            'market': this.marketId(symbol),
+            'type': side,
+            'strategy': type,
+            'funds': amount,
+        }
+        const response = await this.privatePostOrder(this.extend(request, params));
+        const { order } = response;
+        const { id } = order;
+        return {
+            'id': id,
+            'info': response,
+        }
+    }
+
+    // async cancelOrder (id, symbol = undefined, params = {}) {
+    //     if (symbol === undefined) {
+    //         throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` argument');
+    //     }
+    //     await this.loadMarkets ();
+    //     const request = id === 'all' 
+    //         ? { 'market': this.marketId (symbol) }
+    //         : { 'id': id };
+        
+    //     return id === 'all' 
+    //         ? await this.privateDeleteOrdersMarket (this.extend (request, params))
+    //         : await this.privateDeleteOrderId (this.extend (request, params));
+    // }
 
     createSignature (params) {
         const query = [];
