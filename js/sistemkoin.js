@@ -45,6 +45,7 @@ module.exports = class sistemkoin extends Exchange {
                 'public': {
                     'get': [
                         'orderbook',
+                        'ticker',
                     ]
                 },
                 'private': {
@@ -95,12 +96,12 @@ module.exports = class sistemkoin extends Exchange {
 
     async fetchTickers (symbol = undefined, params = {}) {
         await this.loadMarkets();
-        const response = await this.privateGetMarketTicker();
-        const { data } = response;
+        const response = await this.publicGetTicker();
+        // const { data } = response;
         
-        let dataArray = Object.values(data);
-        let quoteSymbolsArray = Object.keys(data);
-        const symbols = []
+        let dataArray = Object.values(response);
+        let quoteSymbolsArray = Object.keys(response);
+        const symbols = [];
         const tickers = [];
         
         for (let i = 0; i < dataArray.length; i += 1) {
