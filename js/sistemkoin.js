@@ -198,6 +198,10 @@ module.exports = class sistemkoin extends Exchange {
                 const { signature, queryString } = this.createSignature(params);
                 request += `?${queryString}&signature=${signature}`;
             };
+        } else {
+            if (Object.keys (params).length) {
+                request += '?' + this.urlencode (params);
+            }
         }
         const url = this.urls['api'][api] + request;
         console.log("URL", url)
