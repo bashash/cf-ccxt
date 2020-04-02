@@ -182,18 +182,9 @@ module.exports = class sistemkoin extends Exchange {
             'symbol': symbol,
             'limit': limit ? limit : 10,
         };
-        const response = await this.priateGetTrade(request);
+        const response = await this.privateGetTrade(request);
         const trades = response.data;
         const result = [];
-
-        // {
-        //     "price": "49000.00000000",
-        //     "volume": "1.00000000",
-        //     "funds": "49000.00000000",
-        //     "side": "bid",
-        //     "timestamp": 1577099182
-        //   }
-
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
             result.push({
@@ -202,6 +193,43 @@ module.exports = class sistemkoin extends Exchange {
             });
         }
         return this.parseTrades(result, symbol, since, limit);
+    }
+
+        // {
+        //     "price": "49000.00000000",
+        //     "volume": "1.00000000",
+        //     "funds": "49000.00000000",
+        //     "side": "bid",
+        //     "timestamp": 1577099182
+        //   }
+    parseTrade (trade, market = undefined) {
+        const id = this.safeString (trade, 'id');
+        const timestamp = trade.timestamp;
+        const datetime = this.iso8601(timestamp);
+        const price = this.safeFloat(trade, 'price');
+        const amount = this.safeFloat(trade, 'volume');
+        const side = this.safeString(trade, 'side');
+        let cost = undefined;
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = price * amount;
+            }
+        }
+        return {
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'symbol': market,
+            'order': id,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+        };
     }
 
     async fetchBalance(symbol) {
