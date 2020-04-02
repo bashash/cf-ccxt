@@ -388,36 +388,33 @@ module.exports = class sistemkoin extends Exchange {
         };
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
+    async createOrder (symbol, type = undefined, side, amount, price = undefined, params = {}) {
         const request =  {
-            'market': this.marketId(symbol),
-            'type': side,
-            'strategy': type,
-            'funds': amount,
+            'market': symbol,
+            'type': side.toUppercase(),
+            'amount': amount,
+            'price': price,
+            'recvWindow': recvWindow ? recvWindow : 5000,
+            'timestamp': this.nonce(),
         }
-        const response = await this.privatePostOrder(this.extend(request, params));
-        const { order } = response;
-        const { id } = order;
+        const response = await this.privatePostMarket(this.extend(request, params));
+        // const { order } = response;
+        // const { id } = order;
         return {
-            'id': id,
+            'id': undefined,
             'info': response,
         }
     }
 
-    // async cancelOrder (id, symbol = undefined, params = {}) {
-    //     if (symbol === undefined) {
-    //         throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` argument');
-    //     }
-    //     await this.loadMarkets ();
-    //     const request = id === 'all' 
-    //         ? { 'market': this.marketId (symbol) }
-    //         : { 'id': id };
-        
-    //     return id === 'all' 
-    //         ? await this.privateDeleteOrdersMarket (this.extend (request, params))
-    //         : await this.privateDeleteOrderId (this.extend (request, params));
-    // }
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `id` argument');
+        }
+        const request = { 
+            "orderID": id,
+        }
+        return await this.privateDeleteMarket (this.extend (request, params));
+    }
 
     createSignature (params) {
         const query = [];
