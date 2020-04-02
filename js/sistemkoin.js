@@ -180,6 +180,7 @@ module.exports = class sistemkoin extends Exchange {
         }
         const request = {
             'symbol': symbol,
+            'timestamp': this.milliseconds(),
         };
         const response = await this.privateGetAccountBalance(request);
         const balance = this.safeValue (response, 'data');
