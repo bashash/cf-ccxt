@@ -184,6 +184,7 @@ module.exports = class sistemkoin extends Exchange {
         };
         const response = await this.privateGetTrade(request);
         const trades = response.data;
+        console.log(trades)
         const result = [];
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
@@ -192,7 +193,6 @@ module.exports = class sistemkoin extends Exchange {
                 symbol,
             });
         }
-        console.log(result)
         return this.parseTrades(result, symbol, since, limit);
     }
 
