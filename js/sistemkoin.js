@@ -178,7 +178,10 @@ module.exports = class sistemkoin extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchBalance requires a symbol argument');
         }
-        const response = await this.privateGetAccountBalance();
+        const request = {
+            'symbol': symbol,
+        };
+        const response = await this.privateGetAccountBalance(request);
         const balance = this.safeValue (response, 'data');
         const result = { 'info': response };
         const currencyId = this.safeString (balance, 'currency');
