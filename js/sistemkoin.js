@@ -95,7 +95,7 @@ module.exports = class sistemkoin extends Exchange {
     }
 
     async fetchTickers (symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        // await this.loadMarkets();
         const response = await this.publicGetTicker();
         // const { data } = response;
         
