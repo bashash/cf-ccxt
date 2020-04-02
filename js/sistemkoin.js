@@ -97,8 +97,6 @@ module.exports = class sistemkoin extends Exchange {
         await this.loadMarkets();
         const response = await this.privateGetMarketTicker();
         const { data } = response;
-        const tickers = Object.values(data);
-        const symbols = Object.keys(response);
         
         let dataArray = Object.values(data);
         let quoteSymbolsArray = Object.keys(data);
