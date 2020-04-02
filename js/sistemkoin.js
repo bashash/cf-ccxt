@@ -55,6 +55,7 @@ module.exports = class sistemkoin extends Exchange {
                         'account/balance',
                         'market/pairs',
                         'market/ticker',
+                        'trade',
                     ],
                     'post': [
                         'market'
@@ -172,6 +173,35 @@ module.exports = class sistemkoin extends Exchange {
         const orderbook = await this.publicGetOrderbook (request);
         const { timestamp } = orderbook;
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 0, 1);
+    }
+
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        // await this.loadMarkets();
+        // const market = this.marketId(symbol);
+        const request = {
+            'symbol': symbol,
+            'limit': limit ? limit : 10,
+        };
+        const response = await this.priateGetTrade(request);
+        const trades = response.data;
+        const result = [];
+
+        // {
+        //     "price": "49000.00000000",
+        //     "volume": "1.00000000",
+        //     "funds": "49000.00000000",
+        //     "side": "bid",
+        //     "timestamp": 1577099182
+        //   }
+
+        for (let i = 0; i < trades.length; i++) {
+            const trade = trades[i];
+            result.push({
+                ...trade,
+                symbol,
+            });
+        }
+        return this.parseTrades(result, symbol, since, limit);
     }
 
     async fetchBalance(symbol) {
