@@ -278,6 +278,10 @@ module.exports = class sistemkoin extends Exchange {
             if (path === 'account/balance' || path === 'market') {
                 const { signature, queryString } = this.createSignature(params);
                 request += `?${queryString}&signature=${signature}`;
+            } else {
+                if (Object.keys (params).length) {
+                    request += '?' + this.urlencode (params);
+                }
             };
         } else {
             if (Object.keys (params).length) {
