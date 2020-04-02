@@ -192,6 +192,7 @@ module.exports = class sistemkoin extends Exchange {
                 symbol,
             });
         }
+        console.log(result)
         return this.parseTrades(result, symbol, since, limit);
     }
 
