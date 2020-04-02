@@ -23,6 +23,7 @@ module.exports = class coinfield extends Exchange {
                 'fetchTicker': true,
                 // 'fetchTickers': true,
                 //private
+                'fetchOpenOrders': true,
                 'fetchOrders': true,
                 'fetchMyTrades': true,
                 'createOrder': true,
@@ -58,6 +59,7 @@ module.exports = class coinfield extends Exchange {
                     ],
                     'delete': [
                         'orders/{market}',
+                        'order/{id}',
                     ]
                 },
             },
@@ -173,12 +175,18 @@ module.exports = class coinfield extends Exchange {
         return this.parseTrades(result, symbol, since, limit);
     }
 
+    // parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+    //     let result = Object.values (trades || []).map ((trade) => this.extend (this.parseTrade (trade, market), params))
+    //     result = this.sortBy (result, 'timestamp')
+    //     return result;
+    // }
+
     parseTrade (trade, market = undefined) {
         const id = this.safeString (trade, 'id');
-        const timestamp = new Date(trade.timestamp).getTime();
+        const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const datetime = this.iso8601(timestamp);
-        const amount = trade.volume;
-        const price = trade.price;
+        const price = this.safeFloat(trade, 'price');
+        const amount = this.safeFloat(trade, 'volume');
         let cost = undefined;
         if (amount !== undefined) {
             if (price !== undefined) {
@@ -195,8 +203,8 @@ module.exports = class coinfield extends Exchange {
             'type': undefined,
             'side': undefined,
             'takerOrMaker': undefined,
-            'price': Number(price),
-            'amount': Number(amount),
+            'price': price,
+            'amount': amount,
             'cost': cost,
             'fee': undefined,
         };
@@ -223,6 +231,22 @@ module.exports = class coinfield extends Exchange {
         const request = {
             'market': marketName,
             'limit': limit ? limit : 50,
+        }
+        const response = await this.privateGetOrdersMarket(this.extend(request, params));
+        return this.parseOrders (response.orders, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market(symbol);
+        const marketName = this.marketId(symbol);
+        const request = {
+            'market': marketName,
+            'limit': limit ? limit : 50,
+            'state': 'open,pending',
         }
         const response = await this.privateGetOrdersMarket(this.extend(request, params));
         return this.parseOrders (response.orders, market, since, limit);
@@ -279,19 +303,20 @@ module.exports = class coinfield extends Exchange {
         const request = {
             'market': market['id'],
             'limit': limit ? limit : 50,
+            'since': since ? since : '',
         };
 
         const response = await this.privateGetTradeHistoryMarket (this.extend (request, params));
-        return this.parseTrades (response.trades, symbol, since, limit);
+        return this.parseMyTrades (response.trades, symbol, since, limit);
     }
 
-    parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = Object.values (trades || []).map ((trade) => this.extend (this.parseTrade (trade, market), params))
+    parseMyTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+        let result = Object.values (trades || []).map ((trade) => this.extend (this.parseMyTrade (trade, market), params))
         result = this.sortBy (result, 'timestamp')
         return result;
     }
 
-    parseTrade (trade, market = undefined) {
+    parseMyTrade (trade, market = undefined) {
         const {
             id,
             side,
@@ -350,10 +375,13 @@ module.exports = class coinfield extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` argument');
         }
         await this.loadMarkets ();
-        const request = {
-            'market': this.marketId (symbol),
-        };
-        return await this.privateDeleteOrdersMarket (this.extend (request, params));
+        const request = id === 'all' 
+            ? { 'market': this.marketId (symbol) }
+            : { 'id': id };
+        
+        return id === 'all' 
+            ? await this.privateDeleteOrdersMarket (this.extend (request, params))
+            : await this.privateDeleteOrderId (this.extend (request, params));
     }
 
     createBody (params) {
@@ -371,7 +399,7 @@ module.exports = class coinfield extends Exchange {
         }
         let volume;
         if (params.volume !== undefined) {
-            funds = this.safeString(params, 'volume');
+            volume = this.safeString(params, 'volume');
         }
         let price;
         if (params.price !== undefined) {
@@ -451,6 +479,28 @@ module.exports = class coinfield extends Exchange {
                 }
                 if (Object.values(params).length) {
                     body = this.json(this.createBody(params));                    
+                }
+            } else if (method === 'DELETE' && path === 'orders/{market}') {
+                headers = {
+                    'Authorization': 'Bearer ' + this.apiKey,
+                }
+                const { side } = params;
+                request += `?side=${side}`
+            } else  if (path === 'orders/{market}') {
+                if (Object.values(params).length) {
+                    const { limit, state } = params;
+                    request += state ? `?limit=${limit}&state=${state}` : `?limit=${limit}`;
+                }
+                headers = {
+                    'Authorization': 'Bearer ' + this.apiKey,
+                }
+            } else if (path === 'trade-history/{market}') {
+                if (Object.values(params).length) {
+                    const { limit, since } = params;
+                    request += since ? `?limit=${limit}&from=${Number(since)}` : `?limit=${limit}`;
+                }
+                headers = {
+                    'Authorization': 'Bearer ' + this.apiKey,
                 }
             } else {
                 headers = {
