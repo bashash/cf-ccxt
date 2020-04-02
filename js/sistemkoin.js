@@ -97,7 +97,6 @@ module.exports = class sistemkoin extends Exchange {
     async fetchTickers (symbol = undefined, params = {}) {
         // await this.loadMarkets();
         const response = await this.publicGetTicker();
-        // const { data } = response;
         
         let dataArray = Object.values(response);
         let quoteSymbolsArray = Object.keys(response);
@@ -162,6 +161,17 @@ module.exports = class sistemkoin extends Exchange {
             'quoteVolume': undefined,
             'info': ticker,
         }
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        // await this.loadMarkets ();
+        const request = {
+            'symbol': symbol,
+            'limit': limit ? limit : 10,
+        };
+        const orderbook = await this.publicGetOrderbook (request);
+        const { timestamp } = orderbook;
+        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 0, 1);
     }
 
     createSignature (params) {
