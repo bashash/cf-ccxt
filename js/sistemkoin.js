@@ -17,7 +17,7 @@ module.exports = class sistemkoin extends Exchange {
             'has': {
                 'CORS': false,
                 //public
-                // 'fetchOrderBook': true,
+                'fetchOrderBook': true,
                 'fetchTrades': true,
                 'fetchMarkets': true,
                 'fetchTicker': true,
@@ -34,22 +34,24 @@ module.exports = class sistemkoin extends Exchange {
             },
             'urls': {
                 'logo': 'https://s2.coinmarketcap.com/static/img/exchanges/64x64/388.png',
-                'api': 'https://api.sistemkoin.com/api/v1',
+                'api': {
+                        'public': 'https://api.sistemkoin.com/',
+                        'private': 'https://api.sistemkoin.com/api/v1/',
+                    },
                 'www': 'https://sistemkoin.com/',
                 'doc': 'https://github.com/sistemkoin-exchange/sistemkoin-official-api-docs',
             },
             'api': {
-                // 'public': {
-                //     'get': [
-                //         'market/pairs',
-                //         'market/ticker',
-                //     ]
-                // },
+                'public': {
+                    'get': [
+                        'orderbook',
+                    ]
+                },
                 'private': {
                     'get': [
                         'account/orders',
-                        'v1/account/trades',
-                        'v1/account/balance',
+                        'account/trades',
+                        'account/balance',
                         'market/pairs',
                         'market/ticker',
                     ],
@@ -64,19 +66,132 @@ module.exports = class sistemkoin extends Exchange {
         });
     }
 
+    async fetchMarkets() {
+        const response = await this.privateGetMarketPairs();
+        const markets = response.data;
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
+            let id = market.id;
+            let base = this.safeString(market, 'coinSymbol');
+            let quote = this.safeString(market, 'pairCoinSymbol');
+            let symbol = `${base}/${quote}`;
+
+            result.push({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'numberOfDigitsCoin': market.numberOfDigitsCoin,
+                'numberOfDigitsPairCoin': market.numberOfDigitsPairCoin,
+                'changeValue': market.changeValue,
+                'change': market.change,
+                'changeDirection': market.changeDirection,
+                'info': market,
+            });
+        }
+        return result;
+    }
+
+    async fetchTickers (symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        const response = await this.privateGetMarketTicker();
+        const { data } = response;
+        const tickers = Object.values(data);
+        const symbols = Object.keys(response);
+        
+        let dataArray = Object.values(data);
+        let quoteSymbolsArray = Object.keys(data);
+        const symbols = []
+        const tickers = [];
+        
+        for (let i = 0; i < dataArray.length; i += 1) {
+            let quote = quoteSymbolsArray[i];
+            for (let j = 0; j < Object.values(dataArray[i]).length; j += 1) {
+                let base = Object.keys(dataArray[i])[j];
+                let marketPair = `${base}/${quote}`;
+                symbols.push(marketPair);
+                tickers.push({
+                    market: marketPair,
+                    ...Object.values(dataArray[i])[j]
+                }); 
+            }    
+        }
+
+        return this.parseTickers(tickers, symbols);
+    }
+
+    parseTickers (tickers, symbols = undefined) {
+        const result = [];
+        for (let i = 0; i < tickers.length; i++) {
+            result.push(this.parseTicker (tickers[i], symbols[i]));
+        }
+        return result;
+    }
+
+    parseTicker (ticker, symbol = undefined) {
+        console.log(ticker, symbol)
+        let timestamp = this.milliseconds ();
+        let datestamp = this.iso8601 (timestamp);
+        let ask = this.safeString (ticker, 'askPrice');
+        let bid = this.safeString (ticker, 'bidPrice');
+        let high = this.safeString (ticker, 'high');
+        let low = this.safeString (ticker, 'low');
+        let baseVolume = this.safeString (ticker, 'volume');
+        let change = this.safeString (ticker, 'change');
+        let percentage = this.safeString (ticker, 'changePercentage');
+
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': datestamp,
+            'bid': bid,
+            'bidVolume': undefined,
+            'ask': ask,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'low': low,
+            'high': high,
+            'last': undefined,
+            'open': undefined,
+            'close': undefined,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': undefined,
+            'info': ticker,
+        }
+    }
+
+    createSignature (params) {
+        const query = [];
+        for (let i in params) {
+            query.push(`${i}=` + params[i]);
+        };
+        const queryString = query.join('&');
+        const signature = this.hmac (this.encode (queryString), this.encode (this.secret), 'sha256', 'hex');
+        return { 
+            signature, 
+            queryString,  
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/';
         request += path;
-
-        if (path === 'account/balance' || path === 'market') {
-            this.signature = this.createSignature(params);
-
+        if (api === 'private') {
             headers = {
                 'X-STK-ApiKey': this.apiKey,
-            }
-            // request += `?symbol=${}&type=${}&amount=${}&price=${}&recvWindow=${}&timestamp=${}&signature=${this.signature}`
+            };
+            if (path === 'account/balance' || path === 'market') {
+                const { signature, queryString } = this.createSignature(params);
+                request += `?${queryString}&signature=${signature}`;
+            };
         }
-        const url = this.urls['api'] + request;
+        const url = this.urls['api'][api] + request;
+        console.log("URL", url)
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
