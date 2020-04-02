@@ -204,9 +204,9 @@ module.exports = class sistemkoin extends Exchange {
         //     "timestamp": 1577099182
         //   }
     parseTrade (trade, market = undefined) {
-        const id = this.safeString (trade, 'id');
+        // const id = this.safeString (trade, 'id');
         const timestamp = trade.timestamp;
-        const datetime = this.iso8601(timestamp);
+        const datetime = this.iso8601(timestamp * 1000);
         const price = this.safeFloat(trade, 'price');
         const amount = this.safeFloat(trade, 'volume');
         const side = this.safeString(trade, 'side');
@@ -217,7 +217,7 @@ module.exports = class sistemkoin extends Exchange {
             }
         }
         return {
-            'id': id,
+            'id': undefined,
             'info': trade,
             'timestamp': timestamp,
             'datetime': datetime,
