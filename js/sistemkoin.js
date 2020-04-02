@@ -239,14 +239,13 @@ module.exports = class sistemkoin extends Exchange {
         }
         const request = {
             'symbol': symbol,
-            // 'timestamp': this.milliseconds(),
             'timestamp': this.nonce(),
         };
         const response = await this.privateGetAccountBalance(request);
         const balance = this.safeValue (response, 'data');
         const result = { 'info': response };
         const currencyId = this.safeString (balance, 'currency');
-        const code = this.safeCurrencyCode (currencyId);
+        const code = this.safeCurrencyCode (currencyId ? currencyId : symbol);
         const account = this.account ();
         account['total'] = this.safeFloat (balance, 'amount');
         account['used'] = this.safeFloat (balance, 'reservedAmount');
