@@ -239,7 +239,8 @@ module.exports = class sistemkoin extends Exchange {
         }
         const request = {
             'symbol': symbol,
-            'timestamp': this.milliseconds(),
+            // 'timestamp': this.milliseconds(),
+            'timestamp': this.nonce(),
         };
         const response = await this.privateGetAccountBalance(request);
         const balance = this.safeValue (response, 'data');
