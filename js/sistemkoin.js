@@ -222,7 +222,7 @@ module.exports = class sistemkoin extends Exchange {
             'timestamp': timestamp,
             'datetime': datetime,
             'symbol': market,
-            'order': id,
+            'order': undefined,
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
