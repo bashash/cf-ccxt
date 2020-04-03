@@ -388,7 +388,7 @@ module.exports = class sistemkoin extends Exchange {
     async createOrder (symbol, type = undefined, side, amount, price = undefined, params = {}) {
         const request =  {
             'market': symbol,
-            'type': side.toUppercase(),
+            'type': side.toUpperCase(),
             'amount': amount,
             'price': price,
             'recvWindow': recvWindow ? recvWindow : 5000,
