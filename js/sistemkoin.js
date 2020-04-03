@@ -261,7 +261,6 @@ module.exports = class sistemkoin extends Exchange {
         }
         const request = {
             'symbol': symbol,
-            // 'side': side,
         }
         const response = await this.privateGetAccountOrders(this.extend(request, params));
         return this.parseOrders (response.orders, market, since, limit);
@@ -271,9 +270,6 @@ module.exports = class sistemkoin extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
         }
-        // await this.loadMarkets ();
-        // const market = this.market(symbol);
-        // const marketName = this.marketId(symbol);
         const request = {
             'symbol': symbol,
             'status': 'PENDING',
@@ -398,10 +394,10 @@ module.exports = class sistemkoin extends Exchange {
             'timestamp': this.nonce(),
         }
         const response = await this.privatePostMarket(this.extend(request, params));
-        // const { order } = response;
-        // const { id } = order;
+        const { data } = response;
+        const { orderID } = data;
         return {
-            'id': undefined,
+            'id': orderID,
             'info': response,
         }
     }
