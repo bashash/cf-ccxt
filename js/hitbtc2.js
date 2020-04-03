@@ -1107,11 +1107,12 @@ module.exports = class hitbtc2 extends hitbtc {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         // we use clientOrderId as the order id with HitBTC intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         if (id === 'all') {
-            const request = symbol ? { 'symbol': symbol } : {};
+            const request = symbol ? { 'symbol': market['id'], } : {};
             return await this.privateDeleteOrder (this.extend (request, params));            
         } else {
             const request = {
