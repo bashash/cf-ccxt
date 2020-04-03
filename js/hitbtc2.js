@@ -1290,6 +1290,7 @@ module.exports = class hitbtc2 extends hitbtc {
             request['symbol'] = market['id'];
         }
         const response = await this.privateGetOrder (this.extend (request, params));
+        console.log("open orders", response)
         return this.parseOrders (response, market, since, limit);
     }
 
