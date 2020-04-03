@@ -264,7 +264,7 @@ module.exports = class sistemkoin extends Exchange {
         }
         const response = await this.privateGetAccountOrders(this.extend(request, params));
         console.log("HEREEEE", response)
-        return this.parseOrders (response.orders, symbol, since, limit);
+        return this.parseOrders (response.data, symbol, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
@@ -277,7 +277,7 @@ module.exports = class sistemkoin extends Exchange {
         }
  
         const response = await this.privateGetAccountOrders(this.extend(request, params));
-        return this.parseOrders (response.orders, symbol, since, limit);
+        return this.parseOrders (response.data, symbol, since, limit);
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
