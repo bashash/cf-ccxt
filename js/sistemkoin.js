@@ -391,7 +391,7 @@ module.exports = class sistemkoin extends Exchange {
             'type': side.toUpperCase(),
             'amount': amount,
             'price': price,
-            'recvWindow': recvWindow ? recvWindow : 5000,
+            // 'recvWindow': recvWindow ? recvWindow : 5000,
             'timestamp': this.nonce(),
         }
         const response = await this.privatePostMarket(this.extend(request, params));
