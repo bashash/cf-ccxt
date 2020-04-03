@@ -20,8 +20,8 @@ module.exports = class sistemkoin extends Exchange {
                 'fetchOrderBook': true,
                 'fetchTrades': true,
                 'fetchMarkets': true,
-                'fetchTicker': true,
-                // 'fetchTickers': true,
+                // 'fetchTicker': true,
+                'fetchTickers': true,
                 //private
                 'fetchOrders': true,
                 'fetchMyTrades': true,
