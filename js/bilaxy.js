@@ -241,7 +241,7 @@ module.exports = class bilaxy extends Exchange {
         await this.loadMarkets ();
         const market = this.market(symbol);
         const id = this.marketId(symbol);
-        console.log(symbol, market, marketId)
+        console.log(symbol, market, id)
         const request = {
             'symbol': id,
             'since': since ? since : 0,
@@ -258,7 +258,7 @@ module.exports = class bilaxy extends Exchange {
         await this.loadMarkets ();
         const market = this.market(symbol);
         const id = this.marketId(symbol);
-        console.log(symbol, market, marketId)
+        console.log(symbol, market, id)
         const request = {
             'symbol': id,
             'since': since ? since : 0,
