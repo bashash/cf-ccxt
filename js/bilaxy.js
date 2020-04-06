@@ -107,7 +107,7 @@ module.exports = class bilaxy extends Exchange {
         await this.loadMarkets();
         const response = await this.privateGetBalances();
         const balances = this.safeValue (response, 'data');
-        console.log(balance)
+        console.log(balances)
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
