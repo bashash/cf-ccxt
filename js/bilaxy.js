@@ -107,11 +107,11 @@ module.exports = class bilaxy extends Exchange {
         await this.loadMarkets();
         const response = await this.privateGetBalances();
         const balances = this.safeValue (response, 'data');
-        console.log(balances)
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'name');
+            currencyId === "USDT" && console.log(currencyId, balance)
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['total'] = this.safeFloat (balance, 'balance');
@@ -243,7 +243,7 @@ module.exports = class bilaxy extends Exchange {
         const id = this.marketId(symbol);
         
         const request = {
-            'symbol': id,
+            'symbol': symbol.replace('/', '_'),
             'since': since ? since : 0,
             'type': 0,
         }
@@ -260,7 +260,7 @@ module.exports = class bilaxy extends Exchange {
         const id = this.marketId(symbol);
         
         const request = {
-            'symbol': id,
+            'symbol': symbol.replace('/', '_'),
             'since': since ? since : 0,
             'type': 1,
         }
@@ -370,7 +370,7 @@ module.exports = class bilaxy extends Exchange {
         await this.loadMarkets ();
         const id = this.marketId(symbol);
         const request = {
-            'symbol': id,
+            'symbol': symbol.replace('/', '_'),
             'amount': amount,
             'price': price,
             'type': side,
