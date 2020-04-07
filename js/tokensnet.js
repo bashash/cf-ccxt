@@ -207,10 +207,13 @@ module.exports = class tokensnet extends Exchange {
             const balance = balances[i];
             const currency = currencies[i];
             const currencyId = currency.toLowerCase();
-            const code = this.safeCurrencyCode (currencyId);
+            // const code = this.safeCurrencyCode (currencyId);
+            const code = currencyId;
             const account = this.account ();
             account['total'] = this.safeFloat (balance, 'total');
             account['free'] = this.safeFloat (balance, 'available');
+            const used = this.safeFloat (balance, 'total') - this.safeFloat (balance, 'available');
+            account['used'] = used;
             result[code] = account;
         }
         return this.parseBalance (result);
