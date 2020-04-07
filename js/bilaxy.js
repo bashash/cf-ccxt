@@ -291,9 +291,9 @@ module.exports = class bilaxy extends Exchange {
         const status = this.parseOrderStatus(order.status);
         const price = this.safeFloat(order, 'price');
         const side = this.safeString(order, 'type');
-        const amount = this.safeFloat(order, 'amount');
+        const amount = this.safeFloat(order, 'count');
         const cost = Number(order.price) * Number(order.amount);
-        const remaining = this.safeFloat(order, 'left_amount');
+        const remaining = this.safeFloat(order, 'left_count');
 
         return {
             'id': id,
