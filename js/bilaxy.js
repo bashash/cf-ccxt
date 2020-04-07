@@ -140,7 +140,7 @@ module.exports = class bilaxy extends Exchange {
     async fetchTicker (symbol = undefined, params = {}) {
         await this.loadMarkets();
         const response = await this.publicGetTicker24hr();
-        const ticker = response[symbol];
+        const ticker = response[symbol.replace('/', '_')];
         return this.parseTicker(ticker, symbol);
     }
 
@@ -240,11 +240,10 @@ module.exports = class bilaxy extends Exchange {
         await this.loadMarkets ();
         const market = this.market(symbol);
         const id = this.marketId(symbol);
-        
         const request = {
             'symbol': id,
             'since': since ? since : 0,
-            'type': 0,
+            // 'type': 0,
         }
         const response = await this.privateGetTradeList(this.extend(request, params));
         return this.parseOrders (response.data, market, since, limit);
@@ -257,11 +256,10 @@ module.exports = class bilaxy extends Exchange {
         await this.loadMarkets ();
         const market = this.market(symbol);
         const id = this.marketId(symbol);
-        
         const request = {
             'symbol': id,
             'since': since ? since : 0,
-            'type': 1,
+            // 'type': 1,
         }
         const response = await this.privateGetTradeList(this.extend(request, params));
         return this.parseOrders (response.data, market, since, limit);
