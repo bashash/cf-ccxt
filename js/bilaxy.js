@@ -247,6 +247,7 @@ module.exports = class bilaxy extends Exchange {
             'type': 0,
         }
         const response = await this.privateGetTradeList(this.extend(request, params));
+        console.log(response)
         return this.parseOrders (response.data, market, since, limit);
     }
 
