@@ -153,6 +153,8 @@ module.exports = class cointiger extends Exchange {
             const account = this.account ();
             account['used'] = this.safeFloat (balance, 'lock');
             account['free'] = this.safeFloat (balance, 'normal');
+            const total = this.safeFloat (balance, 'normal') + this.safeFloat (balance, 'lock');
+            account['total'] = total;
             result[code] = account;
         }
         return this.parseBalance (result);

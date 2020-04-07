@@ -201,8 +201,6 @@ module.exports = class tokensnet extends Exchange {
         const response = await this.privateGetPrivateBalanceAll();
         const balances = Object.values(this.safeValue (response, 'balances'));
         const currencies = Object.keys(this.safeValue (response, 'balances'));
-        // console.log(balances)
-        // console.log(currencies)
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -210,7 +208,6 @@ module.exports = class tokensnet extends Exchange {
             // const currencyId = currency.toLowerCase();
             // const code = this.safeCurrencyCode (currencyId);
             const code = currency;
-            // console.log(code, currencyId, currency)
             const account = this.account ();
             account['total'] = this.safeFloat (balance, 'total');
             account['free'] = this.safeFloat (balance, 'available');
