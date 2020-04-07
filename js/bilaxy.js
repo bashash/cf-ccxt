@@ -241,14 +241,12 @@ module.exports = class bilaxy extends Exchange {
         await this.loadMarkets ();
         const market = this.market(symbol);
         const id = this.marketId(symbol);
-        console.log("id", id)
         const request = {
             'symbol': id,
             'since': since ? since : 0,
             // 'type': 0,
         }
         const response = await this.privateGetTradeList(this.extend(request, params));
-        console.log(response)
         return this.parseOrders (response.data, market, since, limit);
     }
 
