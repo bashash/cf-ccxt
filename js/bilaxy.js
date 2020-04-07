@@ -113,8 +113,10 @@ module.exports = class bilaxy extends Exchange {
             const currencyId = this.safeString (balance, 'name');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'balance');
+            account['free'] = this.safeFloat (balance, 'balance');
             account['used'] = this.safeFloat (balance, 'frozen');
+            const total = this.safeFloat (balance, 'balance') + this.safeFloat (balance, 'frozen');
+            account['total'] = total;
             result[code] = account;
         }
         return this.parseBalance (result);
