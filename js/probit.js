@@ -34,32 +34,42 @@ module.exports = class probit extends Exchange {
             },
             'urls': {
                 'logo': 'https://assets.coingecko.com/markets/images/370/large/IPdnUUW.png?1552380946',
-                'api': 'https://api.probit.com/api/exchange/v1',
+                'api': { 
+                    'api': 'https://api.probit.com/api/exchange/v1',
+                    'account': 'https://accounts.probit.com',
+                },
                 'www': 'https://www.probit.com/app',
                 'doc': 'https://docs-en.probit.com/docs',
             },
             'api': {
-                'public': {
-                    'get': [
-                        'market',
-                        'order_book',
-                        'ticker',
-                        'trade'
-                    ]
+                'api': {
+                    'public': {
+                        'get': [
+                            'market',
+                            'order_book',
+                            'ticker',
+                            'trade'
+                        ]
+                    },
+                    'private': {
+                        'get': [
+                            'open_order',//fetchOpenOrders
+                            'order_history',//fetchOrders
+                            'trade_history',//fetchMyTrades
+                            'balance',
+                        ],
+                        'post': [
+                            'new_order',
+                            'cancel_order',
+                        ],
+                    },
+
                 },
-                'private': {
-                    'get': [
-                        'open_order',//fetchOpenOrders
-                        'order_history',//fetchOrders
-                        'trade_history',//fetchMyTrades
-                        'balance',
-                    ],
+                'account': {
                     'post': [
-                        'new_order',
-                        'cancel_order',
                         'token',
-                    ],
-                },
+                    ]
+                }
             },
         });
     }
@@ -82,7 +92,7 @@ module.exports = class probit extends Exchange {
         //     show_in_ui: true,
         //     closed: false
         //     }
-        const response = await this.publicGetMarket();
+        const response = await this.apiPublicGetMarket();
         const markets = response.data;
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -121,7 +131,7 @@ module.exports = class probit extends Exchange {
         const request = {
             'market_ids': this.marketId(symbol),
         };
-        const response = await this.publicGetTicker(request);
+        const response = await this.apiPublicGetTicker(request);
         const ticker = response.data;
         // {
         //     last: "7346.2",
@@ -206,7 +216,7 @@ module.exports = class probit extends Exchange {
             'start_time': since ? this.iso8601(since) : this.iso8601(this.milliseconds () - 60000*1000),
             'end_time': this.iso8601(this.milliseconds ()),
         };
-        const response = await this.publicGetTrade(request);
+        const response = await this.apiPublicGetTrade(request);
         const trades = response.data;
         const result = [];
         for (let i = 0; i < trades.length; i++) {
@@ -256,14 +266,14 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchToken () {
-        const token = await this.privatePostToken ();
+        const token = await this.accountPostToken ();
         console.log(token);
         this.accessToken = token.access_token;
     }
 
     async fetchBalance () {
         await this.fetchToken ();
-        const response = await this.privateGetBalance ();
+        const response = await this.apiPrivateGetBalance ();
         console.log(response)
         // const balances = this.safeValue (response, 'wallets');
         // const result = { 'info': response };
@@ -282,29 +292,27 @@ module.exports = class probit extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/';
         // request += this.implodeParams (path, params);
-        request += path;        
-        if (api === 'private') {
-            if (path === 'token') {
-                const authHeader = 'Basic ' + this.encode (this.stringToBase64 (`${this.apiKey}:${this.secret}`));
-                headers = {
-                    'Authorization': authHeader,
-                    'content-type': 'application/json',
-                };
-                body = this.json ({
-                    'grant_type': 'client_credentials',
-                });
-            } else {
-                headers = {
-                    'Authorization': 'Bearer ' + this.accessToken,
-                    'content-type': 'application/json',
-                };
-            }
+        request += path; 
+        if (api === 'account') {
+            const authHeader = 'Basic ' + this.encode (this.stringToBase64 (`${this.apiKey}:${this.secret}`));
+            headers = {
+                'Authorization': authHeader,
+                'content-type': 'application/json',
+            };
+            body = this.json ({
+                'grant_type': 'client_credentials',
+            });
+        } else if (api === 'private') {
+            headers = {
+                'Authorization': 'Bearer ' + this.accessToken,
+                'content-type': 'application/json',
+            };
         }
 
         if (Object.keys (params).length) {
             request += '?' + this.urlencode (params);
         }
-        const url = this.urls['api'] + request;
+        const url = this.urls['api'][api] + request;
         console.log('URL', url);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
