@@ -285,7 +285,7 @@ module.exports = class probit extends Exchange {
         request += path;        
         if (api === 'private') {
             if (path === 'token') {
-                const authHeader = 'Basic ' + Base64.encode(`${this.apiKey}:${this.secret}`);
+                const authHeader = 'Basic ' + this.encode (this.stringToBase64 (`${this.apiKey}:${this.secret}`));
                 headers = {
                     'Authorization': authHeader,
                     'content-type': 'application/json',
