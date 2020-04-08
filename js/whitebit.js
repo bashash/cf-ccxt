@@ -699,7 +699,7 @@ module.exports = class whitebit extends Exchange {
         const request = {
             'market': market['id'],
             'offset': 0,
-            'limit': limit ? limit : 100,
+            'limit': limit ? limit > 100 ? 100 : limit : 100,
         };
         // if (limit !== undefined) {
         //     symbol['limit'] = limit;
