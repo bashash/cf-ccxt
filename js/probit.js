@@ -21,14 +21,13 @@ module.exports = class probit extends Exchange {
                 'fetchTrades': true,
                 'fetchMarkets': true,
                 'fetchTicker': true,
-                // 'fetchTickers': true,
                 //private
+                'fetchBalance': true,
                 'fetchOpenOrders': true,
                 'fetchOrders': true,
                 'fetchMyTrades': true,
                 'createOrder': true,
                 'cancelOrder': true,
-                'fetchBalance': true,
             },
             'headers': {
                 'Language': 'en_US',
@@ -45,24 +44,29 @@ module.exports = class probit extends Exchange {
                         'market',
                         'order_book',
                         'ticker',
-                        'trades'
+                        'trade'
                     ]
                 },
                 'private': {
                     'get': [
-                        'orders/{market}',
-                        'trade-history/{market}',
-                        'wallets',
+                        'open_order',//fetchOpenOrders
+                        'order_history',//fetchOrders
+                        'trade_history',//fetchMyTrades
+                        'balance',
                     ],
                     'post': [
-                        'order'
+                        'new_order',
+                        'cancel_order',
                     ],
-                    'delete': [
-                        'orders/{market}',
-                        'order/{id}',
-                    ]
                 },
             },
         });
+    }
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let request = '/';
+        request += this.implodeParams (path, params);
+        
+        const url = this.urls['api'] + request;
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
