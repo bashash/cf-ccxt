@@ -255,13 +255,13 @@ module.exports = class probit extends Exchange {
         };
     }
 
-    fetchToken () {
+    async fetchToken () {
         const token = await privateGetToken ();
         console.log(token);
         this.accessToken = token.access_token;
     }
 
-    fetchBalance () {
+    async fetchBalance () {
         await fetchToken ();
         const response = await this.privateGetBalance ();
         console.log(response)
