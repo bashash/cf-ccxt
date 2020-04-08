@@ -57,6 +57,7 @@ module.exports = class probit extends Exchange {
                     'post': [
                         'new_order',
                         'cancel_order',
+                        'token',
                     ],
                 },
             },
@@ -254,11 +255,52 @@ module.exports = class probit extends Exchange {
         };
     }
 
+    fetchToken () {
+        const token = await privateGetToken ();
+        console.log(token);
+        this.accessToken = token.access_token;
+    }
+
+    fetchBalance () {
+        await fetchToken ();
+        const response = await this.privateGetBalance ();
+        console.log(response)
+        // const balances = this.safeValue (response, 'wallets');
+        // const result = { 'info': response };
+        // for (let i = 0; i < balances.length; i++) {
+        //     const balance = balances[i];
+        //     const currencyId = this.safeString (balance, 'currency');
+        //     const code = this.safeCurrencyCode (currencyId);
+        //     const account = this.account ();
+        //     account['total'] = this.safeFloat (balance, 'balance');
+        //     account['used'] = this.safeFloat (balance, 'locked');
+        //     result[code] = account;
+        // }
+        // return this.parseBalance (result);
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/';
         // request += this.implodeParams (path, params);
-        request += path;
+        request += path;        
+        if (api === 'private') {
+            if (path === 'token') {
+                const authHeader = 'Basic ' + Base64.encode(`${this.apiKey}:${this.secret}`);
+                headers = {
+                    'Authorization': authHeader,
+                    'content-type': 'application/json',
+                };
+                body = this.json ({
+                    'grant_type': 'client_credentials',
+                });
+            } else {
+                headers = {
+                    'Authorization': 'Bearer ' + this.accessToken,
+                    'content-type': 'application/json',
+                };
+            }
+        }
+
         if (Object.keys (params).length) {
             request += '?' + this.urlencode (params);
         }
