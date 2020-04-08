@@ -256,7 +256,7 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchToken () {
-        const token = await privatePostToken ();
+        const token = await this.privatePostToken ();
         console.log(token);
         this.accessToken = token.access_token;
     }
