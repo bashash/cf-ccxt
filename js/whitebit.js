@@ -929,12 +929,15 @@ module.exports = class whitebit extends Exchange {
         } else if (api === 'privateV1') {
             this.checkRequiredCredentials ();
             const request = '/api/v1/' + this.implodeParams (path, params);
+            console.log(request)
             const nonce = this.nonce ().toString ();
             query = this.extend ({
                 'nonce': nonce,
                 'request': request,
             }, query);
+            console.log(query)
             body = this.json (query, { 'jsonUnescapedSlashes': true });
+            console.log("HEREEE", body)
             query = this.encode (body);
             const payload = this.stringToBase64 (query);
             const secret = this.encode (this.secret);
@@ -946,6 +949,7 @@ module.exports = class whitebit extends Exchange {
                 'X-TXC-SIGNATURE': signature,
             };
         }
+        console.log("URL", url)
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
