@@ -35,35 +35,33 @@ module.exports = class probit extends Exchange {
             'urls': {
                 'logo': 'https://assets.coingecko.com/markets/images/370/large/IPdnUUW.png?1552380946',
                 'api': { 
-                    'api': 'https://api.probit.com/api/exchange/v1',
+                    'apiPublic': 'https://api.probit.com/api/exchange/v1',
+                    'apiPrivate': 'https://api.probit.com/api/exchange/v1',
                     'account': 'https://accounts.probit.com',
                 },
                 'www': 'https://www.probit.com/app',
                 'doc': 'https://docs-en.probit.com/docs',
             },
             'api': {
-                'api': {
-                    'public': {
-                        'get': [
-                            'market',
-                            'order_book',
-                            'ticker',
-                            'trade'
-                        ]
-                    },
-                    'private': {
-                        'get': [
-                            'open_order',//fetchOpenOrders
-                            'order_history',//fetchOrders
-                            'trade_history',//fetchMyTrades
-                            'balance',
-                        ],
-                        'post': [
-                            'new_order',
-                            'cancel_order',
-                        ],
-                    },
-
+                'apiPublic': {
+                    'get': [
+                        'market',
+                        'order_book',
+                        'ticker',
+                        'trade'
+                    ] 
+                },
+                'apiPrivate': {
+                    'get': [
+                        'open_order',//fetchOpenOrders
+                        'order_history',//fetchOrders
+                        'trade_history',//fetchMyTrades
+                        'balance',
+                    ],
+                    'post': [
+                        'new_order',
+                        'cancel_order',
+                    ],
                 },
                 'account': {
                     'post': [
