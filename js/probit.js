@@ -262,7 +262,7 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchBalance () {
-        await fetchToken ();
+        await this.fetchToken ();
         const response = await this.privateGetBalance ();
         console.log(response)
         // const balances = this.safeValue (response, 'wallets');
