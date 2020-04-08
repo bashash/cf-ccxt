@@ -270,7 +270,7 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchBalance () {
-        await this.fetchToken ();
+        const token = await this.fetchToken ();
         const response = await this.apiPrivateGetBalance ();
         console.log(response)
         // const balances = this.safeValue (response, 'wallets');
@@ -300,7 +300,7 @@ module.exports = class probit extends Exchange {
             body = this.json ({
                 'grant_type': 'client_credentials',
             });
-        } else if (api === 'private') {
+        } else if (api === 'apiPrivate') {
             headers = {
                 'Authorization': 'Bearer ' + this.accessToken,
                 'content-type': 'application/json',
