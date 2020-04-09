@@ -504,6 +504,7 @@ module.exports = class cointiger extends Exchange {
         this.checkRequiredCredentials ();
         let request = '/';
         request += path;
+        console.log('params', params)
         if (api === 'tapiPrivate' || api === 'apiV2Private') {
             const timestamp = this.milliseconds ().toString ();
             const query = this.keysort (this.extend ({
@@ -542,7 +543,7 @@ module.exports = class cointiger extends Exchange {
         }
 
         const url = this.urls['api'][api] + request;
-
+        console.log("URL", url)
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
