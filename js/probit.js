@@ -464,7 +464,7 @@ module.exports = class probit extends Exchange {
                     'type': type,
                     'side': side,
                     'time_in_force': 'ioc',
-                    'cost': amount,
+                    'cost': String(amount),
                 }; 
             } else {
                 request = {
@@ -472,7 +472,7 @@ module.exports = class probit extends Exchange {
                     'type': type,
                     'side': side,
                     'time_in_force': 'ioc',
-                    'quantity': amount,
+                    'quantity': String(amount),
                 }; 
             }
         } else if (type === 'limit') {
@@ -481,8 +481,8 @@ module.exports = class probit extends Exchange {
                 'type': type,
                 'side': side,
                 'time_in_force': 'gtc',
-                'price': price,
-                'quantity': amount,
+                'price': String(price),
+                'quantity': String(amount),
             }; 
         }
         
