@@ -265,8 +265,6 @@ module.exports = class probit extends Exchange {
 
     async fetchToken () {
         const token = await this.accountPostToken ();
-        console.log("token", token);
-        // this.accessToken = token.access_token;
         return token.access_token;
     }
 
@@ -451,7 +449,6 @@ module.exports = class probit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        
         const token = await this.fetchToken ();
         this.accessToken = token;
         await this.loadMarkets ();
@@ -511,14 +508,7 @@ module.exports = class probit extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        console.log(
-            'path', path,
-            'api', api,
-            'method', method,
-            'params', params,
-        )
         let request = '/';
-        // request += this.implodeParams (path, params);
         request += path; 
         if (api === 'account') {
             const authHeader = 'Basic ' + this.encode (this.stringToBase64 (`${this.apiKey}:${this.secret}`));
@@ -539,7 +529,6 @@ module.exports = class probit extends Exchange {
             if (method === 'POST') {
                 if (Object.keys (params).length) {
                     body = this.json (params);
-                    console.log("body", body)
                 }
             }
         }
@@ -548,7 +537,6 @@ module.exports = class probit extends Exchange {
             request += '?' + this.urlencode (params);
         }
         const url = this.urls['api'][api] + request;
-        console.log('URL', url);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
