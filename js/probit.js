@@ -481,7 +481,7 @@ module.exports = class probit extends Exchange {
                 'type': type,
                 'side': side,
                 'time_in_force': 'gtc',
-                'price': String(price),
+                'limit_price': String(price),
                 'quantity': String(amount),
             }; 
         }
