@@ -486,7 +486,7 @@ module.exports = class probit extends Exchange {
             }; 
         }
         
-        const response = await this.apiPrivateNewOrder (this.extend(request, params));
+        const response = await this.apiPrivatePostNewOrder (this.extend(request, params));
         const { data } = response;
         const { id } = data;
         return {
@@ -507,7 +507,7 @@ module.exports = class probit extends Exchange {
             'order_id': id, 
         }
         
-        return await this.apiPrivateCancelOrder (this.extend (request, params));
+        return await this.apiPrivatePostCancelOrder (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
