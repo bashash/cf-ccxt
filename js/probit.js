@@ -266,11 +266,13 @@ module.exports = class probit extends Exchange {
     async fetchToken () {
         const token = await this.accountPostToken ();
         console.log(token);
-        this.accessToken = token.access_token;
+        // this.accessToken = token.access_token;
+        return token.access_token;
     }
 
     async fetchBalance () {
         const token = await this.fetchToken ();
+        this.accessToken = token;
         const response = await this.apiPrivateGetBalance ();
         console.log(response)
         // const balances = this.safeValue (response, 'wallets');
@@ -288,6 +290,12 @@ module.exports = class probit extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        console.log(
+            'path', path,
+            'api', api,
+            'method', method,
+            'params', params,
+        )
         let request = '/';
         // request += this.implodeParams (path, params);
         request += path; 
@@ -301,11 +309,13 @@ module.exports = class probit extends Exchange {
                 'grant_type': 'client_credentials',
             });
         } else if (api === 'apiPrivate') {
-            console.log("access token", this.access_token)
-            headers = {
-                'Authorization': 'Bearer ' + this.accessToken,
-                'content-type': 'application/json',
-            };
+            if (this.accessToken) {
+                console.log(this.accessToken)
+                headers = {
+                    'Authorization': 'Bearer ' + this.accessToken,
+                    'content-type': 'application/json',
+                };
+            }
         }
 
         if (Object.keys (params).length) {
