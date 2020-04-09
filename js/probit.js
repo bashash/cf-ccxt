@@ -450,6 +450,66 @@ module.exports = class probit extends Exchange {
         };
     }
 
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        
+        const token = await this.fetchToken ();
+        this.accessToken = token;
+        await this.loadMarkets ();
+
+        let request = {};
+        if (type === 'market') {
+            if (side === 'buy') {
+                request = {
+                    'market_id': this.marketId(symbol),
+                    'type': type,
+                    'side': side,
+                    'time_in_force': 'ioc',
+                    'cost': amount,
+                }; 
+            } else {
+                request = {
+                    'market_id': this.marketId(symbol),
+                    'type': type,
+                    'side': side,
+                    'time_in_force': 'ioc',
+                    'quantity': amount,
+                }; 
+            }
+        } else if (type === 'limit') {
+            request = {
+                'market_id': this.marketId(symbol),
+                'type': type,
+                'side': side,
+                'time_in_force': 'gtc',
+                'price': price,
+                'quantity': amount,
+            }; 
+        }
+        
+        const response = await this.apiPrivateNewOrder (this.extend(request, params));
+        const { data } = response;
+        const { id } = data;
+        return {
+            'id': id,
+            'info': response,
+        }
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` and `order id` argument');
+        }
+        const token = await this.fetchToken ();
+        this.accessToken = token;
+        await this.loadMarkets ();
+        const request = { 
+            'market_id': this.marketId (symbol),
+            'order_id': id, 
+        }
+        
+        return await this.apiPrivateCancelOrder (this.extend (request, params));
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         console.log(
             'path', path,
@@ -475,6 +535,12 @@ module.exports = class probit extends Exchange {
                     'Authorization': 'Bearer ' + this.accessToken,
                     'content-type': 'application/json',
                 };
+            }
+            if (method === 'POST') {
+                if (Object.keys (params).length) {
+                    body = this.json (params);
+                    console.log("body", body)
+                }
             }
         }
 
