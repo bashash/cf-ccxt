@@ -476,7 +476,7 @@ module.exports = class cointiger extends Exchange {
             };
             const response_call_1 = await this.apiV2PrivateGetOrderOrders (this.extend (request_call_1, params));
             console.log("call 1", response_call_1)
-            const lastOrderId = response_call_1.data[lastOrderId - 1].id;
+            const lastOrderId = response_call_1.data[response_call_1.data.length - 1].id;
             console.log("lastOrderId", lastOrderId)
             const request_call_2 = {
                 'symbol': market['id'],
