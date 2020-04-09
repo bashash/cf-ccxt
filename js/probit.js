@@ -275,18 +275,23 @@ module.exports = class probit extends Exchange {
         this.accessToken = token;
         const response = await this.apiPrivateGetBalance ();
         console.log("Balance", response)
-        // const balances = this.safeValue (response, 'wallets');
-        // const result = { 'info': response };
-        // for (let i = 0; i < balances.length; i++) {
-        //     const balance = balances[i];
-        //     const currencyId = this.safeString (balance, 'currency');
-        //     const code = this.safeCurrencyCode (currencyId);
-        //     const account = this.account ();
-        //     account['total'] = this.safeFloat (balance, 'balance');
-        //     account['used'] = this.safeFloat (balance, 'locked');
-        //     result[code] = account;
-        // }
-        // return this.parseBalance (result);
+        const balances = this.safeValue (response, 'data');
+        const result = { 'info': response };
+        if (balances.length > 0) {
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const currencyId = this.safeString (balance, 'currency');
+                const code = currencyId;
+                const account = this.account ();
+                account['total'] = this.safeFloat (balance, 'balance');
+                account['free'] = this.safeFloat (balance, 'available');
+                account['used'] = this.safeFloat (balance, 'balance') - this.safeFloat (balance, 'available');
+                result[code] = account;
+            }
+            return this.parseBalance (result);
+        } else {
+            return [];
+        }
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -309,9 +314,7 @@ module.exports = class probit extends Exchange {
                 'grant_type': 'client_credentials',
             });
         } else if (api === 'apiPrivate') {
-            console.log("this.accessToken", this.accessToken)
             if (this.accessToken) {
-                console.log("this.accessToken", this.accessToken)
                 headers = {
                     'Authorization': 'Bearer ' + this.accessToken,
                     'content-type': 'application/json',
