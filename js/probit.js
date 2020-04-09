@@ -308,7 +308,7 @@ module.exports = class probit extends Exchange {
             'end_time': this.iso8601(this.milliseconds ()),
         }
 
-        const response = await this.apiPrivateGetOrderHistroy(this.extend(request, params));
+        const response = await this.apiPrivateGetOrderHistory(this.extend(request, params));
         return this.parseOrders (response.data, market, since, limit);
     }
 
