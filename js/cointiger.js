@@ -467,8 +467,34 @@ module.exports = class cointiger extends Exchange {
             'direct': 'next', // or 'prev'
             'size': limit,
         };
-        const response = await this.apiV2PrivateGetOrderOrders (this.extend (request, params));
-        return this.parseOrders (response['data'], market, since, limit);
+        if (limit > 50) {
+            const request_call_1 = {
+                'symbol': market['id'],
+                'states': states,
+                'direct': 'next',
+                'size': limit > 100 ? 50 : limit,
+            };
+            const response_call_1 = await this.apiV2PrivateGetOrderOrders (this.extend (request_call_1, params));
+            console.log("call 1", response_call_1)
+            const lastOrderId = response_call_1.data[lastOrderId - 1].id;
+            console.log("lastOrderId", lastOrderId)
+            const request_call_2 = {
+                'symbol': market['id'],
+                'states': states,
+                'from': `${lastOrderId}`,
+                'direct': 'next',
+                'size': limit > 100 ? 50 : limit,
+            };
+            const response_call_2 = await this.apiV2PrivateGetOrderOrders (this.extend (request_call_2, params));
+            console.log("call_2", response_call_2)
+            const mergedResponseData = [ ...response_call_1.data, ...response_call_2.data ];
+            console.log("mergedResponseData", mergedResponseData)
+            return this.parseOrders (mergedResponseData, market, since, limit);
+        } else {
+            const response = await this.apiV2PrivateGetOrderOrders (this.extend (request, params));
+            return this.parseOrders (response['data'], market, since, limit);
+        }
+        
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
