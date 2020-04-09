@@ -301,6 +301,7 @@ module.exports = class probit extends Exchange {
                 'grant_type': 'client_credentials',
             });
         } else if (api === 'apiPrivate') {
+            console.log("access token", this.access_token)
             headers = {
                 'Authorization': 'Bearer ' + this.accessToken,
                 'content-type': 'application/json',
