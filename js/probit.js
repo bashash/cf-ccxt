@@ -274,7 +274,6 @@ module.exports = class probit extends Exchange {
         const token = await this.fetchToken ();
         this.accessToken = token;
         const response = await this.apiPrivateGetBalance ();
-        console.log("Balance", response)
         const balances = this.safeValue (response, 'data');
         const result = { 'info': response };
         if (balances.length > 0) {
@@ -292,6 +291,163 @@ module.exports = class probit extends Exchange {
         } else {
             return [];
         }
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+        }
+        const token = await this.fetchToken ();
+        this.accessToken = token;
+        await this.loadMarkets ();
+        const market = this.marketId(symbol);
+        const request = {
+            'market_id': market,
+            'limit': limit ? limit : 100,
+            'start_time': since ? this.iso8601(since) : this.iso8601(this.milliseconds () - 60000*1000),
+            'end_time': this.iso8601(this.milliseconds ()),
+        }
+
+        const response = await this.apiPrivateGetOrderHistroy(this.extend(request, params));
+        return this.parseOrders (response.data, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
+        }
+        const token = await this.fetchToken ();
+        this.accessToken = token;
+        await this.loadMarkets ();
+        const market = this.marketId(symbol);
+        const request = {
+            'market_id': market,
+        }
+        const response = await this.apiPrivateGetOpenOrder(this.extend(request, params));
+        return this.parseOrders (response.data, market, since, limit);
+    }
+
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
+        let result = Object.values (orders).map (order => this.extend (this.parseOrder (order, market), params))
+        result = this.sortBy (result, 'time')
+        return result;
+    }
+    // {
+    //     "id": "38173538",
+    //     "user_id": "eac9ad11-...-bd8b7d0743ed",
+    //     "market_id": "PROB-KRW",
+    //     "type": "limit",
+    //     "side": "buy",
+    //     "quantity": "626.69757281",
+    //     "limit_price": "103",
+    //     "time_in_force": "gtc",
+    //     "filled_cost": "0",
+    //     "filled_quantity": "0",
+    //     "open_quantity": "0",
+    //     "cancelled_quantity": "626.69757281",
+    //     "status": "cancelled",
+    //     "time": "2019-02-01T12:52:55.659Z",
+    //     "client_order_id": ""
+    // }
+
+    parseOrder (order, market = undefined) {
+        const id = this.safeString(order, 'id'); 
+        const timestamp = this.parse8601 (this.safeString (order, 'time'));
+        const datetime = this.safeString (order, 'time');
+        const symbol = this.safeString(order, 'market_id');
+        const type = this.safeString(order, 'type');
+        const side = this.safeString(order, 'side');
+        const status = this.safeString(order, 'status');
+        const amount = this.safeFloat(order, 'quantity');
+        const price = this.safeFloat(order, 'limit_price');
+        const cost = Number(order.limit_price) * Number(order.quantity);
+        const filled = this.safeFloat(order, 'filled_quantity');
+        const remaining = this.safeFloat(order, 'open_quantity');
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'average': undefined,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': undefined,
+            'info': order,
+        }
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a `symbol` argument');
+        }
+        const token = await this.fetchToken ();
+        this.accessToken = token;
+        await this.loadMarkets ();
+        const market = this.marketId(symbol);
+        const request = {
+            'market': market,
+            'limit': limit ? limit : 100,
+            'start_time': since ? this.iso8601(since) : this.iso8601(this.milliseconds () - 60000*1000),
+            'end_time': this.iso8601(this.milliseconds ()),
+        };
+
+        const response = await this.apiPrivateGetTradeHistory (this.extend (request, params));
+        return this.parseMyTrades (response.data, market, since, limit);
+    }
+
+    parseMyTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+        let result = Object.values (trades || []).map ((trade) => this.extend (this.parseMyTrade (trade, market), params))
+        result = this.sortBy (result, 'time')
+        return result;
+    }
+    // {
+    //     "id":"BTC-USDT:183566",
+    //     "order_id":"17209376",
+    //     "side":"sell",
+
+    //     "fee_amount":"0.657396569175",
+    //     "fee_currency_id":"USDT",
+    
+    //     "status":"settled",
+    //     "price":"6573.96569175",
+    //     "quantity":"0.1",
+    //     "cost":"657.396569175",
+    //     "time":"2018-08-10T06:06:46.000Z",
+    //     "market_id":"BTC-USDT"
+    //   }
+    parseMyTrade (trade, market = undefined) {
+        const id = this.safeString(trade, 'id'); 
+        const timestamp = this.parse8601 (this.safeString (trade, 'time'));
+        const datetime = this.iso8601(timestamp);
+        const symbol = this.safeString(trade, 'market_id');
+        const orderId = this.safeString(trade, 'order_id');
+        const side = this.safeString(trade, 'side');
+        const price = this.safeFloat(trade, 'price');
+        const amount = this.safeFloat(trade, 'quantity');
+        const cost = this.safeFloat(trade, 'cost');
+        const fee = this.safeFloat(trade, 'fee_amount');
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'symbol': symbol,
+            'order': orderId,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+            'info': trade,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
