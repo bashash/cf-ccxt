@@ -197,7 +197,7 @@ module.exports = class probit extends Exchange {
         const request = {
             'market_id': this.marketId (symbol),
         };
-        const orderbook = await this.publicGetOrderBook (request);
+        const orderbook = await this.apiPublicGetOrderBook (request);
         const { data } = orderbook;
         return this.parseOrderBook (this.preParseOrderBook(data), undefined, 'bids', 'asks', 'price', 'quantity');
     }
@@ -211,7 +211,7 @@ module.exports = class probit extends Exchange {
         const request = {
             'market_id': market,
             'limit': limit ? limit : 100,
-            'start_time': since ? this.iso8601(since) : this.iso8601(this.milliseconds () - 60000*1000),
+            'start_time': since ? this.iso8601(since) : this.iso8601(this.milliseconds () - 60000),
             'end_time': this.iso8601(this.milliseconds ()),
         };
         const response = await this.apiPublicGetTrade(request);
