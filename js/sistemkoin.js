@@ -318,7 +318,7 @@ module.exports = class sistemkoin extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': undefined,
-            'side': side,
+            'side': undefined,
             'price': price,
             'average': average,
             'cost': cost,
