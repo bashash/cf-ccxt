@@ -320,7 +320,7 @@ module.exports = class sistemkoin extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
-            'side': side,
+            'side': side === 'bids' ? 'bid' : 'ask',
             'price': price,
             'average': average,
             'cost': cost,
