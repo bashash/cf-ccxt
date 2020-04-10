@@ -151,6 +151,7 @@ const exchanges = {
     'paymium':                 require ('./js/paymium.js'),
     'poloniex':                require ('./js/poloniex.js'),
     'rightbtc':                require ('./js/rightbtc.js'),
+    'sistemkoin':              require ('./js/sistemkoin.js'),
     'southxchange':            require ('./js/southxchange.js'),
     'stex':                    require ('./js/stex.js'),
     'stronghold':              require ('./js/stronghold.js'),
