@@ -234,9 +234,9 @@ module.exports = class sistemkoin extends Exchange {
     }
 
     async fetchBalance (symbol) {
-        // if (symbol === undefined) {
-        //     throw new ArgumentsRequired (this.id + ' fetchBalance requires a symbol argument');
-        // }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBalance requires a symbol argument');
+        }
         const request = {
             'symbol': symbol,
             'timestamp': this.nonce(),
