@@ -304,7 +304,7 @@ module.exports = class sistemkoin extends Exchange {
         const timestamp = undefined;
         const datetime = undefined;
         const symbol = this.safeString(order, 'pair');  
-        const status = this.safetString(order, 'orderStatus');
+        const status = this.safeString(order, 'orderStatus');
         const price = this.safeFloat(order, 'triggerPrice');
         const average = this.safeFloat(order, 'average');
         const amount = this.safeFloat(order, 'amount');
@@ -395,6 +395,7 @@ module.exports = class sistemkoin extends Exchange {
             'timestamp': this.nonce(),
         }
         const response = await this.privatePostMarket(this.extend(request, params));
+        // console.log("HEREEEEEEEEEEEE", response)
         const { data } = response;
         const { orderID } = data;
         return {
