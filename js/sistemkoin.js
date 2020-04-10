@@ -310,6 +310,8 @@ module.exports = class sistemkoin extends Exchange {
         const amount = this.safeFloat(order, 'amount');
         const cost = Number(order.triggerPrice) * Number(order.amount);
         const remaining = this.safeFloat(order, 'remainingAmount');
+        const side = this.safeString(order, 'side');
+        const type = 'limit';
         return {
             'id': id,
             'timestamp': timestamp,
@@ -317,8 +319,8 @@ module.exports = class sistemkoin extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': undefined,
-            'side': undefined,
+            'type': type,
+            'side': side,
             'price': price,
             'average': average,
             'cost': cost,
@@ -395,7 +397,7 @@ module.exports = class sistemkoin extends Exchange {
             'timestamp': this.nonce(),
         }
         const response = await this.privatePostMarket(this.extend(request, params));
-        // console.log("HEREEEEEEEEEEEE", response)
+        console.log(response)
         const { data } = response;
         const { orderID } = data;
         return {
