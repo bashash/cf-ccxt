@@ -13,7 +13,7 @@ module.exports = class sistemkoin extends Exchange {
             'id': 'sistemkoin',
             'name': 'Sistemkoin',
             'countries': ['TR'],
-            'rateLimit': 1000,
+            'rateLimit': 2000,
             'has': {
                 'CORS': false,
                 //public
