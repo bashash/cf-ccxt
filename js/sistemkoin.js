@@ -129,7 +129,7 @@ module.exports = class sistemkoin extends Exchange {
     }
 
     parseTicker (ticker, symbol = undefined) {
-        console.log(ticker, symbol)
+        // console.log(ticker, symbol)
         let timestamp = this.milliseconds ();
         let datestamp = this.iso8601 (timestamp);
         let ask = this.safeString (ticker, 'askPrice');
@@ -168,7 +168,7 @@ module.exports = class sistemkoin extends Exchange {
         // await this.loadMarkets ();
         const request = {
             'symbol': symbol,
-            'limit': limit ? limit : 10,
+            'limit': limit > 100 ? 50 : limit,
         };
         const orderbook = await this.publicGetOrderbook (request);
         const { timestamp } = orderbook;
@@ -180,11 +180,11 @@ module.exports = class sistemkoin extends Exchange {
         // const market = this.marketId(symbol);
         const request = {
             'symbol': symbol,
-            'limit': limit ? limit : 10,
+            'limit': limit > 100 ? 50 : limit,
         };
         const response = await this.privateGetTrade(request);
         const trades = response.data;
-        console.log(trades)
+        // console.log(trades)
         const result = [];
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
@@ -263,7 +263,7 @@ module.exports = class sistemkoin extends Exchange {
             'symbol': symbol,
         }
         const response = await this.privateGetAccountOrders(this.extend(request, params));
-        console.log("HEREEEE", response)
+        // console.log("HEREEEE", response)
         return this.parseOrders (response.data, symbol, since, limit);
     }
 
@@ -281,7 +281,7 @@ module.exports = class sistemkoin extends Exchange {
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = Object.values (orders).map (order => this.extend (this.parseOrder (order, market), params))
+        let result = Object.values (orders).map (order => this.extend (this.parseOrder (order, market), params));
         // result = this.sortBy (result, 'timestamp')
         return result;
     }
@@ -447,7 +447,7 @@ module.exports = class sistemkoin extends Exchange {
             }
         }
         const url = this.urls['api'][api] + request;
-        console.log("URL", url)
+        // console.log("URL", url)
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
