@@ -239,7 +239,7 @@ module.exports = class sistemkoin extends Exchange {
         }
         const request = {
             'symbol': symbol,
-            'timestamp': this.milliseconds(),
+            'timestamp': this.nonce(),
         };
         const response = await this.privateGetAccountBalance(request);
         const balance = this.safeValue (response, 'data');
@@ -394,7 +394,7 @@ module.exports = class sistemkoin extends Exchange {
             'amount': amount,
             'price': price,
             'recvWindow': 5000,
-            'timestamp': this.milliseconds(),
+            'timestamp': this.nonce(),
         }
         console.log(request)
         const response = await this.privatePostMarket(this.extend(request, params));
@@ -413,7 +413,7 @@ module.exports = class sistemkoin extends Exchange {
         }
         const request = { 
             "orderID": id,
-            'timestamp': this.milliseconds(),
+            'timestamp': this.nonce(),
         }
         return await this.privateDeleteMarket (this.extend (request, params));
     }
