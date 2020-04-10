@@ -395,7 +395,7 @@ module.exports = class sistemkoin extends Exchange {
             'timestamp': this.nonce(),
         }
         const response = await this.privatePostMarket(this.extend(request, params));
-        console.log("HEREEEEEEEEEEEE", response)
+        // console.log("HEREEEEEEEEEEEE", response)
         const { data } = response;
         const { orderID } = data;
         return {
