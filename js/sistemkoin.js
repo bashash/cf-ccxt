@@ -247,7 +247,7 @@ module.exports = class sistemkoin extends Exchange {
         const currencyId = this.safeString (balance, 'currency');
         const code = this.safeCurrencyCode (currencyId ? currencyId : symbol);
         const account = this.account ();
-        console.log(data)
+        console.log(balance)
         console.log(this.safeString (balance, 'amount'))
         console.log(this.safeString (balance, 'reservedAmount'))
         account['total'] = this.safeString (balance, 'amount');
