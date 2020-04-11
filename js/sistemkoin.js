@@ -242,14 +242,15 @@ module.exports = class sistemkoin extends Exchange {
             'timestamp': this.nonce(),
         };
         const response = await this.privateGetAccountBalance(request);
-        const balance = this.safeValue (response, 'data');
+        const balance = this.safeValue (response, 'data')[0];
         const result = { 'info': response };
         const currencyId = this.safeString (balance, 'currency');
         const code = this.safeCurrencyCode (currencyId ? currencyId : symbol);
         const account = this.account ();
-        account['total'] = this.safeFloat (balance, 'amount');
-        account['used'] = this.safeFloat (balance, 'reservedAmount');
-        account['free'] = this.safeFloat (balance, 'amount') - this.safeFloat (balance, 'reservedAmount');
+        account['total'] = this.safeString (balance, 'amount');
+        account['used'] = this.safeString (balance, 'reservedAmount');
+        const free = Number(this.safeString (balance, 'amount')) - Number(this.safeString (balance, 'reservedAmount'))
+        account['free'] = String(free);
         result[code] = account;
 
         return this.parseBalance (result);
