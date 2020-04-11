@@ -137,7 +137,7 @@ module.exports = class sistemkoin extends Exchange {
         let high = this.safeString (ticker, 'high');
         let low = this.safeString (ticker, 'low');
         let last = this.safeString (ticker, 'current');
-        let baseVolume = this.safeString (ticker, 'volume');
+        let volume = this.safeString (ticker, 'volume');
         let change = this.safeString (ticker, 'changeAmount');
         let percentage = this.safeString (ticker, 'changePercentage');
 
@@ -159,8 +159,8 @@ module.exports = class sistemkoin extends Exchange {
             'change': Number(change),
             'percentage': Number(percentage),
             'average': undefined,
-            'baseVolume': Number(baseVolume),
-            'quoteVolume': undefined,
+            'baseVolume': Number(volume) / Number(last),
+            'quoteVolume': Number(volume),
             'info': ticker,
         }
     }
