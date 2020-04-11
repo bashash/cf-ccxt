@@ -136,29 +136,30 @@ module.exports = class sistemkoin extends Exchange {
         let bid = this.safeString (ticker, 'bidPrice');
         let high = this.safeString (ticker, 'high');
         let low = this.safeString (ticker, 'low');
+        let last = this.safeString (ticker, 'current');
         let baseVolume = this.safeString (ticker, 'volume');
-        let change = this.safeString (ticker, 'change');
+        let change = this.safeString (ticker, 'changeAmount');
         let percentage = this.safeString (ticker, 'changePercentage');
 
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': datestamp,
-            'bid': bid,
+            'bid': Number(bid),
             'bidVolume': undefined,
-            'ask': ask,
+            'ask': Number(ask),
             'askVolume': undefined,
             'vwap': undefined,
-            'low': low,
-            'high': high,
-            'last': undefined,
+            'low': Number(low),
+            'high': Number(high),
+            'last': Number(last),
             'open': undefined,
             'close': undefined,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
+            'change': Number(change),
+            'percentage': Number(percentage),
             'average': undefined,
-            'baseVolume': baseVolume,
+            'baseVolume': Number(baseVolume),
             'quoteVolume': undefined,
             'info': ticker,
         }
@@ -247,10 +248,10 @@ module.exports = class sistemkoin extends Exchange {
         const currencyId = this.safeString (balance, 'currency');
         const code = this.safeCurrencyCode (currencyId ? currencyId : symbol);
         const account = this.account ();
-        account['total'] = this.safeString (balance, 'amount');
-        account['used'] = this.safeString (balance, 'reservedAmount');
+        account['total'] = Number(this.safeString (balance, 'amount'));
+        account['used'] = Number(this.safeString (balance, 'reservedAmount'));
         const free = Number(this.safeString (balance, 'amount')) - Number(this.safeString (balance, 'reservedAmount'))
-        account['free'] = String(free);
+        account['free'] = Number(free);
         result[code] = account;
 
         return this.parseBalance (result);
