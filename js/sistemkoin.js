@@ -248,10 +248,11 @@ module.exports = class sistemkoin extends Exchange {
         const currencyId = this.safeString (balance, 'currency');
         const code = this.safeCurrencyCode (currencyId ? currencyId : symbol);
         const account = this.account ();
-        account['total'] = Number(this.safeString (balance, 'amount'));
-        account['used'] = Number(this.safeString (balance, 'reservedAmount'));
-        const free = Number(this.safeString (balance, 'amount')) - Number(this.safeString (balance, 'reservedAmount'))
-        account['free'] = Number(free);
+        const amount = this.safeString (balance, 'amount');
+        const reservedAmount = this.safeString (balance, 'reservedAmount');
+        account['total'] = Number(amount) + Number(reservedAmount);
+        account['used'] = Number(reservedAmount);
+        account['free'] = Number(amount);
         result[code] = account;
 
         return this.parseBalance (result);
