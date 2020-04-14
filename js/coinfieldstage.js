@@ -106,7 +106,8 @@ module.exports = class coinfield extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'balance');
+            account['total'] = this.safeFloat (balance, 'balance') + this.safeFloat (balance, 'locked');
+            account['free'] = this.safeFloat (balance, 'balance');
             account['used'] = this.safeFloat (balance, 'locked');
             result[code] = account;
         }
