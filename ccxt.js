@@ -97,6 +97,7 @@ const exchanges = {
     'coinex':                  require ('./js/coinex.js'),
     'coinfalcon':              require ('./js/coinfalcon.js'),
     'coinfield':               require ('./js/coinfield.js'),
+    'coinfieldstage':          require ('./js/coinfieldstage.js'),
     'coinfloor':               require ('./js/coinfloor.js'),
     'coingi':                  require ('./js/coingi.js'),
     'coinmarketcap':           require ('./js/coinmarketcap.js'),
