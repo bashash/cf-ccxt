@@ -401,23 +401,25 @@ module.exports = class tokensnet extends Exchange {
             if (method === 'POST') {
                 if (path === 'private/orders/add/limit') {
                     if (Object.values(params).length) {
-                        const {
-                            tradingPair,
-                            side,
-                            amount,
-                            price,
-                            takeProfit,
-                            expireDate,
-                        } = params;
-                        if (takeProfit && !expireDate) {
-                            request += `?tradingPair=${tradingPair}&side=${side}&amount=${amount}&price=${price}&takeProfit=${takeProfit}`;                    
-                        } else if (!takeProfit && expireDate) {
-                            request += `?tradingPair=${tradingPair}&side=${side}&amount=${amount}&price=${price}&texpireDate=${expireDate}`;                    
-                        } else if (takeProfit && expireDate) {
-                            request += `?tradingPair=${tradingPair}&side=${side}&amount=${amount}&price=${price}&takeProfit=${takeProfit}&expireDate=${expireDate}`;                    
-                        } else {
-                            request += `?tradingPair=${tradingPair}&side=${side}&amount=${amount}&price=${price}`;
-                        }
+                        // const {
+                        //     tradingPair,
+                        //     side,
+                        //     amount,
+                        //     price,
+                        //     takeProfit,
+                        //     expireDate,
+                        // } = params;
+                        // if (takeProfit && !expireDate) {
+                        //     request += `?tradingPair=${tradingPair}&side=${side}&amount=${amount}&price=${price}&takeProfit=${takeProfit}`;                    
+                        // } else if (!takeProfit && expireDate) {
+                        //     request += `?tradingPair=${tradingPair}&side=${side}&amount=${amount}&price=${price}&texpireDate=${expireDate}`;                    
+                        // } else if (takeProfit && expireDate) {
+                        //     request += `?tradingPair=${tradingPair}&side=${side}&amount=${amount}&price=${price}&takeProfit=${takeProfit}&expireDate=${expireDate}`;                    
+                        // } else {
+                        //     request += `?tradingPair=${tradingPair}&side=${side}&amount=${amount}&price=${price}`;
+                        // }
+                        request += '?' + this.urlencode (params);
+                        console.log("request", request)
                     }
                 }
             }
