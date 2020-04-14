@@ -191,6 +191,7 @@ module.exports = class tokensnet extends Exchange {
             'tradingPair': tradingPair,
         };
         const orderbook = await this.publicGetPublicOrderBookTradingPair(this.extend(request, params));
+        console.log(orderbook)
         const timestamp = orderbook.timestamp * 1000;
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 0, 1);
     }
