@@ -402,7 +402,8 @@ module.exports = class tokensnet extends Exchange {
                 if (path === 'private/orders/add/limit') {
                     if (Object.values(params).length) {
                         headers['Content-Type'] = 'application/x-www-form-urlencoded';
-                        body = this.urlencode(params);
+                        // body = this.urlencode(params);
+                        body = this.json(params);
                     }
                 }
             }
