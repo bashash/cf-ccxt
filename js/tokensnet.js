@@ -55,7 +55,7 @@ module.exports = class tokensnet extends Exchange {
                         'private/trades/{tradingPair}/{page}/',
                     ],
                     'post': [
-                        'private/orders/add/limit',
+                        'private/orders/add/limit/',
                         'private/orders/cancel/{orderId}/'
                     ],
                 },
