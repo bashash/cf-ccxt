@@ -400,11 +400,13 @@ module.exports = class tokensnet extends Exchange {
             }
             console.log(headers)
             if (method === 'POST') {
-                if (Object.values(params).length) {
-                    headers['Content-Type'] = 'application/x-www-form-urlencoded';
-                    // request += '?' + this.urlencode (params);
-                    // console.log("request", request)
-                    body = this.urlencode(params);
+                if (path === 'private/orders/add/limit') {
+                    if (Object.values(params).length) {
+                        headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                        // request += '?' + this.urlencode (params);
+                        // console.log("request", request)
+                        body = this.urlencode(params);
+                    }
                 }
             }
         }
