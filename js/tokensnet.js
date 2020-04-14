@@ -411,7 +411,9 @@ module.exports = class tokensnet extends Exchange {
             }
         }
         const url = this.urls['api'] + request;
-        console.log("URL", url)
+        console.log(
+            { 'url': url, 'method': method, 'body': body, 'headers': headers }
+        )
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
