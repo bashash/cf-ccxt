@@ -55,7 +55,7 @@ module.exports = class tokensnet extends Exchange {
                         'private/trades/{tradingPair}/{page}/',
                     ],
                     'post': [
-                        'private/orders/add/limit',
+                        'private/orders/add/limit/',
                         'private/orders/cancel/{orderId}/'
                     ],
                 },
@@ -361,7 +361,7 @@ module.exports = class tokensnet extends Exchange {
             'price': price,
         };
         const response = await this.privatePostPrivateOrdersAddLimit(this.extend(request, params));
-        console.log("HEREEE", response)
+        // console.log("HEREEE", response)
         const { orderId } = response;
         return {
             'id': orderId,
@@ -388,7 +388,7 @@ module.exports = class tokensnet extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        console.log(params)
+        // console.log(params)
         let request = '/';
         request += this.implodeParams (path, params);
         if (api === 'private') {
@@ -399,18 +399,19 @@ module.exports = class tokensnet extends Exchange {
                 'signature': signature, 
             }
             if (method === 'POST') {
-                if (path === 'private/orders/add/limit') {
+                if (path === 'private/orders/add/limit/') {
                     if (Object.values(params).length) {
                         headers['Content-Type'] = 'application/x-www-form-urlencoded';
                         body = this.urlencode(params);
+                        // body = this.json(params);
                     }
                 }
             }
         }
         const url = this.urls['api'] + request;
-        console.log(
-            { 'url': url, 'method': method, 'body': body, 'headers': headers }
-        )
+        // console.log(
+        //     { 'url': url, 'method': method, 'body': body, 'headers': headers }
+        // )
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
