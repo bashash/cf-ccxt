@@ -7,7 +7,7 @@ const { ExchangeError, ArgumentsRequired, BadRequest, ExchangeNotAvailable, Auth
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class coinfield extends Exchange {
+module.exports = class coinfieldstage extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinfield',
