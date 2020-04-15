@@ -331,7 +331,7 @@ module.exports = class bitforex extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostApiV1FundAllAccount (params);
-        console.log(response)
+        console.log(response.data.find(x => x.currency === 'xrp'))
         const data = response['data'];
         const result = { 'info': response };
         for (let i = 0; i < data.length; i++) {
