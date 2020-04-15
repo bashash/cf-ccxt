@@ -201,8 +201,8 @@ module.exports = class cointiger extends Exchange {
             'change': rose,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': amount,
-            'quoteVolume': vol,
+            'baseVolume': vol,
+            'quoteVolume': amount,
             'info': undefined,
         };
     }
