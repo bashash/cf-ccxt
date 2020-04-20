@@ -143,13 +143,20 @@ module.exports = class probit extends Exchange {
         // }
         const {
             time,
-            low,
-            high,
-            last,
-            change,
-            base_volume,
-            quote_volume,
+            // low,
+            // high,
+            // last,
+            // change,
+            // base_volume,
+            // quote_volume,
         } = ticker[0];
+
+        const high = this.safeFloat (ticker[0], 'high');
+        const low = this.safeFloat (ticker[0], 'low');
+        const last = this.safeFloat (ticker[0], 'last');
+        const change = this.safeFloat (ticker[0], 'change');
+        const base_volume = this.safeFloat (ticker[0], 'base_volume');
+        const quote_volume = this.safeFloat (ticker[0], 'quote_volume');
         return {
             'symbol': symbol,
             'timestamp': this.parse8601 (time),
