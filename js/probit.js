@@ -143,13 +143,20 @@ module.exports = class probit extends Exchange {
         // }
         const {
             time,
-            low,
-            high,
-            last,
-            change,
-            base_volume,
-            quote_volume,
+            // low,
+            // high,
+            // last,
+            // change,
+            // base_volume,
+            // quote_volume,
         } = ticker[0];
+
+        const high = this.safeFloat (ticker[0], 'high');
+        const low = this.safeFloat (ticker[0], 'low');
+        const last = this.safeFloat (ticker[0], 'last');
+        const change = this.safeFloat (ticker[0], 'change');
+        const base_volume = this.safeFloat (ticker[0], 'base_volume');
+        const quote_volume = this.safeFloat (ticker[0], 'quote_volume');
         return {
             'symbol': symbol,
             'timestamp': this.parse8601 (time),
@@ -211,7 +218,7 @@ module.exports = class probit extends Exchange {
         const request = {
             'market_id': market,
             'limit': limit ? limit : 100,
-            'start_time': since ? this.iso8601(since) : this.iso8601(this.milliseconds () - 60000),
+            'start_time': since ? this.iso8601(since) : this.iso8601('2020-04-01T00:00:00.000Z'),
             'end_time': this.iso8601(this.milliseconds ()),
         };
         const response = await this.apiPublicGetTrade(request);
@@ -277,12 +284,12 @@ module.exports = class probit extends Exchange {
         if (balances.length > 0) {
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
-                const currencyId = this.safeString (balance, 'currency');
+                const currencyId = this.safeString (balance, 'currency_id');
                 const code = currencyId;
                 const account = this.account ();
-                account['total'] = this.safeFloat (balance, 'balance');
+                account['total'] = this.safeFloat (balance, 'total');
                 account['free'] = this.safeFloat (balance, 'available');
-                account['used'] = this.safeFloat (balance, 'balance') - this.safeFloat (balance, 'available');
+                account['used'] = this.safeFloat (balance, 'total') - this.safeFloat (balance, 'available');
                 result[code] = account;
             }
             return this.parseBalance (result);
@@ -302,7 +309,7 @@ module.exports = class probit extends Exchange {
         const request = {
             'market_id': market,
             'limit': limit ? limit : 100,
-            'start_time': since ? this.iso8601(since) : this.iso8601(this.milliseconds () - 60000),
+            'start_time': since ? this.iso8601(since) : this.iso8601('2020-04-01T00:00:00.000Z'),
             'end_time': this.iso8601(this.milliseconds ()),
         }
 
@@ -392,7 +399,7 @@ module.exports = class probit extends Exchange {
         const request = {
             'market': market,
             'limit': limit ? limit : 100,
-            'start_time': since ? this.iso8601(since) : this.iso8601(this.milliseconds () - 60000),
+            'start_time': since ? this.iso8601(since) : this.iso8601('2020-04-01T00:00:00.000Z'),
             'end_time': this.iso8601(this.milliseconds ()),
         };
 
