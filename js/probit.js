@@ -211,7 +211,7 @@ module.exports = class probit extends Exchange {
         const request = {
             'market_id': market,
             'limit': limit ? limit : 100,
-            'start_time': since ? this.iso8601(since) : this.iso8601(this.milliseconds () - 60000),
+            'start_time': since ? this.iso8601(since) : this.iso8601('2020-04-01T00:00:00.000Z'),
             'end_time': this.iso8601(this.milliseconds ()),
         };
         const response = await this.apiPublicGetTrade(request);
@@ -302,7 +302,7 @@ module.exports = class probit extends Exchange {
         const request = {
             'market_id': market,
             'limit': limit ? limit : 100,
-            'start_time': since ? this.iso8601(since) : this.iso8601(this.milliseconds () - 60000),
+            'start_time': since ? this.iso8601(since) : this.iso8601('2020-04-01T00:00:00.000Z'),
             'end_time': this.iso8601(this.milliseconds ()),
         }
 
@@ -392,7 +392,7 @@ module.exports = class probit extends Exchange {
         const request = {
             'market': market,
             'limit': limit ? limit : 100,
-            'start_time': since ? this.iso8601(since) : this.iso8601(this.milliseconds () - 60000),
+            'start_time': since ? this.iso8601(since) : this.iso8601('2020-04-01T00:00:00.000Z'),
             'end_time': this.iso8601(this.milliseconds ()),
         };
 
