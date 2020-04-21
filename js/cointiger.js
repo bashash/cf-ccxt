@@ -295,8 +295,13 @@ module.exports = class cointiger extends Exchange {
             }
         }
         const response = await this.apiV2PrivatePostOrder (this.extend (request, params));
-        
         const timestamp = this.milliseconds ();
+        const code = response['code'];
+
+        if (code !== '0') {
+            console.log(response);
+        }
+
         return {
             'info': response,
             'id': this.safeString (response['data'], 'order_id'),
@@ -475,9 +480,7 @@ module.exports = class cointiger extends Exchange {
                 'size': limit > 100 ? 50 : limit,
             };
             const response_call_1 = await this.apiV2PrivateGetOrderOrders (this.extend (request_call_1, params));
-            console.log("call 1", response_call_1)
             const lastOrderId = response_call_1.data[response_call_1.data.length - 1].id;
-            console.log("lastOrderId", lastOrderId)
             const request_call_2 = {
                 'symbol': market['id'],
                 'states': states,
@@ -486,9 +489,7 @@ module.exports = class cointiger extends Exchange {
                 'size': limit > 100 ? 50 : limit,
             };
             const response_call_2 = await this.apiV2PrivateGetOrderOrders (this.extend (request_call_2, params));
-            console.log("call_2", response_call_2)
             const mergedResponseData = [ ...response_call_1.data, ...response_call_2.data ];
-            console.log("mergedResponseData", mergedResponseData)
             return this.parseOrders (mergedResponseData, market, since, limit);
         } else {
             const response = await this.apiV2PrivateGetOrderOrders (this.extend (request, params));
@@ -530,7 +531,6 @@ module.exports = class cointiger extends Exchange {
         this.checkRequiredCredentials ();
         let request = '/';
         request += path;
-        console.log('params', params)
         if (api === 'tapiPrivate' || api === 'apiV2Private') {
             const timestamp = this.milliseconds ().toString ();
             const query = this.keysort (this.extend ({
@@ -569,7 +569,6 @@ module.exports = class cointiger extends Exchange {
         }
 
         const url = this.urls['api'][api] + request;
-        console.log("URL", url)
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
