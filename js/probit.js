@@ -190,10 +190,10 @@ module.exports = class probit extends Exchange {
         const bids = result['bids'];
         for (let i = 0; i < data.length; i++) {
             const { side } = data[i];
-            if (side === 'sell') {
-                asks.push(data[i]);
-            } else {
+            if (side === 'buy') {
                 bids.push(data[i]);
+            } else {
+                asks.push(data[i]);
             };
         }
         return result;
