@@ -475,9 +475,9 @@ module.exports = class cointiger extends Exchange {
                 'size': limit > 100 ? 50 : limit,
             };
             const response_call_1 = await this.apiV2PrivateGetOrderOrders (this.extend (request_call_1, params));
-            // console.log("call 1", response_call_1)
+            console.log("call 1", response_call_1)
             const lastOrderId = response_call_1.data[response_call_1.data.length - 1].id;
-            // console.log("lastOrderId", lastOrderId)
+            console.log("lastOrderId", lastOrderId)
             const request_call_2 = {
                 'symbol': market['id'],
                 'states': states,
@@ -486,9 +486,9 @@ module.exports = class cointiger extends Exchange {
                 'size': limit > 100 ? 50 : limit,
             };
             const response_call_2 = await this.apiV2PrivateGetOrderOrders (this.extend (request_call_2, params));
-            // console.log("call_2", response_call_2)
+            console.log("call_2", response_call_2)
             const mergedResponseData = [ ...response_call_1.data, ...response_call_2.data ];
-            // console.log("mergedResponseData", mergedResponseData)
+            console.log("mergedResponseData", mergedResponseData)
             return this.parseOrders (mergedResponseData, market, since, limit);
         } else {
             const response = await this.apiV2PrivateGetOrderOrders (this.extend (request, params));
