@@ -1009,8 +1009,6 @@ module.exports = class hitbtc extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const response = await this.fetch2 (path, api, method, params, headers, body);
-        console.log("response", response)
-        console.log("type of response", typeof response)
         if ('code' in response) {
             if ('ExecutionReport' in response) {
                 if (response['ExecutionReport']['orderRejectReason'] === 'orderExceedsLimit') {
