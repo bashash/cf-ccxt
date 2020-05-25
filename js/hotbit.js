@@ -238,7 +238,7 @@ module.exports = class hotbit extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
 
     }
-    
+
     async createOrder () {
 
     }
@@ -252,9 +252,10 @@ module.exports = class hotbit extends Exchange {
         for (let i in params) {
             query.push(`${i}=` + params[i]);
         };
-        const queryString = query.join('&');
-        query.push('secret=' + this.secret);
-        const queryStringWithSecret = query.join('&');
+        const sortedQueryArray = query.sort();
+        const queryString = sortedQueryArray.join('&');
+        sortedQueryArray.push('secret=' + this.secret);
+        const queryStringWithSecret = sortedQueryArray.join('&');
         const signature = this.hash(this.encode(queryStringWithSecret), 'md5');
         return {
             signature,
