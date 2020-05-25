@@ -1,0 +1,245 @@
+'use strict';
+
+//  ---------------------------------------------------------------------------
+
+const Exchange = require('./base/Exchange');
+const { ExchangeError, ArgumentsRequired, BadRequest, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
+const CryptoJS = require ('./static_dependencies/crypto-js/crypto-js');
+//  ---------------------------------------------------------------------------
+
+module.exports = class hotbit extends Exchange {
+    describe() {
+        return this.deepExtend(super.describe(), {
+            'id': 'hotbit',
+            'name': 'HotBit',
+            'countries': ['EE'],
+            'rateLimit': 1000,
+            'has': {
+                'CORS': false,
+                //public
+                'fetchOrderBook': true,
+                'fetchTrades': true,
+                'fetchMarkets': true,
+                'fetchTicker': true,
+                // 'fetchTickers': true,
+                //private
+                'fetchBalance': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+                'fetchMyTrades': true,
+                'createOrder': true,
+                'cancelOrder': true,
+            },
+            'headers': {
+                'Language': 'en_US',
+            },
+            'urls': {
+                'logo': 'https://assets.coingecko.com/markets/images/201/large/hotbit.jpg?1531043195',
+                'api': 'https://api.hotbit.io/api/v1',
+                'www': 'https://www.hotbit.io/',
+                'doc': 'https://github.com/hotbitex/hotbit.io-api-docs/wiki/Rest-API-Doc',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'market.list',//get markets
+                        'allticker',//get tickers 
+                        'market.status',//get ticker 
+                        'order.depth',//get orderbook
+                        'market.deals',//get trades
+                    ]
+                },
+                'private': {
+                    'post': [
+                        'balance.query',//get balances
+                        'order.pending',//get open orders
+                        'order.finished',//get close orders
+                        'market.user_deals',//get trade history
+                        'order.put_limit',//create order
+                        'order.cancel',//cancel order
+                    ],
+                },
+            },
+        });
+    }
+
+    async fetchMarkets () {
+    // [
+    //     {
+        //     money_prec: 8,
+        //     name: "QASHBTC",
+        //     fee_prec: 4,
+        //     stock: "QASH",
+        //     money: "BTC",
+        //     min_amount: "0.1",
+        //     stock_prec: 2
+    //     },
+    //     ...
+    // ]
+        const response = await this.publicGetMarketList();
+        const markets = response.result;
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
+            let id = this.safeString(market, 'name').toLowerCase();
+            let base = this.safeString(market, 'stock');
+            let quote = this.safeString(market, 'money');
+            let symbol = `${base}/${quote}`;
+            let fee_prec = this.safeString(market, 'fee_prec');
+            let stock_prec = this.safeString(market, 'stock_prec');
+            let money_prec = this.safeString(market, 'money_prec');
+            let min_amount = this.safeString(market, 'min_amount');
+
+            result.push({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'fee_precision': fee_prec,
+                'ask_precision': stock_prec,
+                'bid_precision': money_prec,
+                'minimum_amount': min_amount,
+                'info': market,
+            });
+        }
+        return result;
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        // {
+        //     "period": 10,
+        //     "last": "0.0743",
+        //     "open": "0.074162",
+        //     "close": "0.0743",
+        //     "high": "0.0743",
+        //     "low": "0.074162",
+        //     "volume": "0.314",
+        //     "deal": "0.023315531"
+        // }
+        const request = {
+            'market': symbol,
+            'period': 10,
+        };
+        const response = await this.publicGetMarketStatus(this.extend (request, params));
+        const ticker = response.result;        
+        const last = Number(ticker.last);
+        const open = Number(ticker.open);
+        const close = Number(ticker.close);
+        const high = Number(ticker.high);
+        const low = Number(ticker.low);
+        const volume = Number(ticker.volume);
+        const deal = Number(ticker.deal);
+        const timestamp = response.id;
+        const datetime = this.iso8601 (timestamp);
+
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'low': low,
+            'high': high,
+            'last': last,
+            'open': open,
+            'close': close,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': deal,
+            'quoteVolume': volume,
+            'info': ticker,
+        };;
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        // await this.loadMarkets ();
+        const request = {
+            'market': this.marketId (symbol),
+            'limit': limit > 100 ? 100 : limit,
+            'interval': 1e-8,
+        };
+        //order.depth
+        const orderbook = await this.publicGetOrderDepth (this.extend (request, params));
+        const timestamp = orderbook.id * 1000;
+        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 0, 1);
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'market': symbol,
+            'limit': limit ? limit : 10,
+            'last_id': this.seconds(),
+        };
+        const response = await this.publicGetMarketDeals (this.extend (request, params));
+        const trades = response.result;
+        const result = [];
+        for (let i = 0; i < trades.length; i++) {
+            const trade = trades[i];
+            result.push({
+                ...trade,
+                symbol,
+            });
+        }
+        return this.parseTrades(result, symbol, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        // {
+        //     id: 1534853012,
+        //     time: 1590434061.552552,
+        //     price: "8924.79",
+        //     amount: "0.308321",
+        //     type: "sell"
+        // },
+        const id = this.safeString (trade, 'id');
+        const timestamp = trade.time;
+        const datetime = this.iso8601(timestamp);
+        const amount = this.safeString (trade, 'amount');
+        const price = this.safeString (trade, 'price');
+        const side = this.safeString (trade, 'type');
+
+        return {
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'symbol': market,
+            'order': id,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': Number(price),
+            'amount': Number(amount),
+            'cost': Number(price) * Number(amount),
+            'fee': undefined,
+        };
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let request = '/';
+        request += path;
+        
+        console.log("params", params)
+        console.log("path", path)
+        console.log("api", api)
+        console.log("method", method)
+
+        if (api === 'private') {
+            // const signature = this.createSignature({ ...params, key: this.apiKey, secret: this.secret });
+            // request += '?' + this.urlencode ({ ...params, key: this.apiKey, sign: signature });
+        } else {
+            if (Object.keys (params).length) {
+                request += '?' + this.urlencode (params);
+            }
+        }
+
+        const url = this.urls['api'] + request;
+        console.log('url', url)
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+}
