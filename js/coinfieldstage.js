@@ -7,7 +7,7 @@ const { ExchangeError, ArgumentsRequired, BadRequest, ExchangeNotAvailable, Auth
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class coinfield extends Exchange {
+module.exports = class coinfieldstage extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinfield',
@@ -35,7 +35,7 @@ module.exports = class coinfield extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
-                'api': 'https://api.coinfield.com/v1',
+                'api': 'https://api.test.coinselect.com/v1',
                 'www': 'https://www.coinfield.com/',
                 'doc': 'https://api.coinfield.com/v1/docs/',
             },

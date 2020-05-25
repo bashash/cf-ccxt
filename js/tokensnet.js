@@ -55,7 +55,7 @@ module.exports = class tokensnet extends Exchange {
                         'private/trades/{tradingPair}/{page}/',
                     ],
                     'post': [
-                        'private/orders/add/limit',
+                        'private/orders/add/limit/',
                         'private/orders/cancel/{orderId}/'
                     ],
                 },
@@ -118,22 +118,22 @@ module.exports = class tokensnet extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': datestamp,
-            'bid': bid,
+            'bid': Number(bid),
             'bidVolume': undefined,
-            'ask': ask,
+            'ask': Number(ask),
             'askVolume': undefined,
             'vwap': undefined,//vwap
-            'low': low,
-            'high': high,
-            'last': last,
-            'open': open,
-            'close': last,
+            'low': Number(low),
+            'high': Number(high),
+            'last': Number(last),
+            'open': Number(open),
+            'close': Number(last),
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': quoteVolume,
+            'quoteVolume': Number(quoteVolume),
             'info': ticker,
         }
     }
@@ -192,7 +192,7 @@ module.exports = class tokensnet extends Exchange {
         };
         const orderbook = await this.publicGetPublicOrderBookTradingPair(this.extend(request, params));
         const timestamp = orderbook.timestamp * 1000;
-        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 0, 1);
+        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 1, 0);
     }
 
     async fetchBalance (params = {}) {
@@ -200,17 +200,19 @@ module.exports = class tokensnet extends Exchange {
         //private/balance/all/
         const response = await this.privateGetPrivateBalanceAll();
         const balances = Object.values(this.safeValue (response, 'balances'));
-        const currencies = Object.keys(balances);
-
+        const currencies = Object.keys(this.safeValue (response, 'balances'));
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currency = currencies[i];
-            const currencyId = currency.toLowerCase();
-            const code = this.safeCurrencyCode (currencyId);
+            // const currencyId = currency.toLowerCase();
+            // const code = this.safeCurrencyCode (currencyId);
+            const code = currency;
             const account = this.account ();
             account['total'] = this.safeFloat (balance, 'total');
             account['free'] = this.safeFloat (balance, 'available');
+            const used = this.safeFloat (balance, 'total') - this.safeFloat (balance, 'available');
+            account['used'] = used;
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -359,6 +361,7 @@ module.exports = class tokensnet extends Exchange {
             'price': price,
         };
         const response = await this.privatePostPrivateOrdersAddLimit(this.extend(request, params));
+        // console.log("HEREEE", response)
         const { orderId } = response;
         return {
             'id': orderId,
@@ -385,6 +388,7 @@ module.exports = class tokensnet extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        // console.log(params)
         let request = '/';
         request += this.implodeParams (path, params);
         if (api === 'private') {
@@ -395,28 +399,19 @@ module.exports = class tokensnet extends Exchange {
                 'signature': signature, 
             }
             if (method === 'POST') {
-                if (path === 'private/orders/add/limit') {
+                if (path === 'private/orders/add/limit/') {
                     if (Object.values(params).length) {
-                        const {
-                            tradingPair,
-                            side,
-                            amount,
-                            price,
-                            takeProfit,
-                            expireDate,
-                        } = params;
-                        if (takeProfit && !expireDate) {
-                            request += `?tradingPair=${tradingPair}&side=${side}&amount=${amount}&price=${price}&takeProfit=${takeProfit}`;                    
-                        } else if (!takeProfit && expireDate) {
-                            request += `?tradingPair=${tradingPair}&side=${side}&amount=${amount}&price=${price}&texpireDate=${expireDate}`;                    
-                        } else if (takeProfit && expireDate) {
-                            request += `?tradingPair=${tradingPair}&side=${side}&amount=${amount}&price=${price}&takeProfit=${takeProfit}&expireDate=${expireDate}`;                    
-                        }
+                        headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                        body = this.urlencode(params);
+                        // body = this.json(params);
                     }
                 }
             }
         }
         const url = this.urls['api'] + request;
+        // console.log(
+        //     { 'url': url, 'method': method, 'body': body, 'headers': headers }
+        // )
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }

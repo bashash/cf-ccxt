@@ -113,8 +113,10 @@ module.exports = class bilaxy extends Exchange {
             const currencyId = this.safeString (balance, 'name');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'balance');
+            account['free'] = this.safeFloat (balance, 'balance');
             account['used'] = this.safeFloat (balance, 'frozen');
+            const total = this.safeFloat (balance, 'balance') + this.safeFloat (balance, 'frozen');
+            account['total'] = total;
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -140,7 +142,7 @@ module.exports = class bilaxy extends Exchange {
     async fetchTicker (symbol = undefined, params = {}) {
         await this.loadMarkets();
         const response = await this.publicGetTicker24hr();
-        const ticker = response[symbol];
+        const ticker = response[symbol.replace('/', '_')];
         return this.parseTicker(ticker, symbol);
     }
 
@@ -240,11 +242,10 @@ module.exports = class bilaxy extends Exchange {
         await this.loadMarkets ();
         const market = this.market(symbol);
         const id = this.marketId(symbol);
-        
         const request = {
             'symbol': id,
             'since': since ? since : 0,
-            'type': 0,
+            // 'type': 0,
         }
         const response = await this.privateGetTradeList(this.extend(request, params));
         return this.parseOrders (response.data, market, since, limit);
@@ -257,11 +258,10 @@ module.exports = class bilaxy extends Exchange {
         await this.loadMarkets ();
         const market = this.market(symbol);
         const id = this.marketId(symbol);
-        
         const request = {
             'symbol': id,
             'since': since ? since : 0,
-            'type': 1,
+            // 'type': 1,
         }
         const response = await this.privateGetTradeList(this.extend(request, params));
         return this.parseOrders (response.data, market, since, limit);
@@ -291,9 +291,9 @@ module.exports = class bilaxy extends Exchange {
         const status = this.parseOrderStatus(order.status);
         const price = this.safeFloat(order, 'price');
         const side = this.safeString(order, 'type');
-        const amount = this.safeFloat(order, 'amount');
+        const amount = this.safeFloat(order, 'count');
         const cost = Number(order.price) * Number(order.amount);
-        const remaining = this.safeFloat(order, 'left_amount');
+        const remaining = this.safeFloat(order, 'left_count');
 
         return {
             'id': id,

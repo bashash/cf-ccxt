@@ -305,7 +305,7 @@ module.exports = class bitforex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': undefined,
+            'type': "limit",
             'side': side,
             'price': price,
             'amount': amount,
@@ -448,7 +448,7 @@ module.exports = class bitforex extends Exchange {
         const symbol = market['symbol'];
         const sideId = this.safeInteger (order, 'tradeType');
         const side = this.parseSide (sideId);
-        const type = undefined;
+        const type = "limit";
         const price = this.safeFloat (order, 'orderPrice');
         const average = this.safeFloat (order, 'avgPrice');
         const amount = this.safeFloat (order, 'orderAmount');

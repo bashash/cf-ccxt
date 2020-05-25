@@ -154,6 +154,8 @@ module.exports = class cointiger extends Exchange {
             const account = this.account ();
             account['used'] = this.safeFloat (balance, 'lock');
             account['free'] = this.safeFloat (balance, 'normal');
+            const total = this.safeFloat (balance, 'normal') + this.safeFloat (balance, 'lock');
+            account['total'] = total;
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -199,8 +201,8 @@ module.exports = class cointiger extends Exchange {
             'change': rose,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': amount,
-            'quoteVolume': vol,
+            'baseVolume': vol,
+            'quoteVolume': amount,
             'info': undefined,
         };
     }
@@ -293,8 +295,13 @@ module.exports = class cointiger extends Exchange {
             }
         }
         const response = await this.apiV2PrivatePostOrder (this.extend (request, params));
-        
         const timestamp = this.milliseconds ();
+        const code = response['code'];
+
+        if (code !== '0') {
+            console.log(response);
+        }
+
         return {
             'info': response,
             'id': this.safeString (response['data'], 'order_id'),
@@ -465,8 +472,30 @@ module.exports = class cointiger extends Exchange {
             'direct': 'next', // or 'prev'
             'size': limit,
         };
-        const response = await this.apiV2PrivateGetOrderOrders (this.extend (request, params));
-        return this.parseOrders (response['data'], market, since, limit);
+        if (limit > 50) {
+            const request_call_1 = {
+                'symbol': market['id'],
+                'states': states,
+                'direct': 'next',
+                'size': limit > 100 ? 50 : limit,
+            };
+            const response_call_1 = await this.apiV2PrivateGetOrderOrders (this.extend (request_call_1, params));
+            const lastOrderId = response_call_1.data[response_call_1.data.length - 1].id;
+            const request_call_2 = {
+                'symbol': market['id'],
+                'states': states,
+                'from': `${lastOrderId}`,
+                'direct': 'next',
+                'size': limit > 100 ? 50 : limit,
+            };
+            const response_call_2 = await this.apiV2PrivateGetOrderOrders (this.extend (request_call_2, params));
+            const mergedResponseData = [ ...response_call_1.data, ...response_call_2.data ];
+            return this.parseOrders (mergedResponseData, market, since, limit);
+        } else {
+            const response = await this.apiV2PrivateGetOrderOrders (this.extend (request, params));
+            return this.parseOrders (response['data'], market, since, limit);
+        }
+        
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -540,7 +569,6 @@ module.exports = class cointiger extends Exchange {
         }
 
         const url = this.urls['api'][api] + request;
-
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
