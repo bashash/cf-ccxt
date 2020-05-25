@@ -164,8 +164,9 @@ module.exports = class hotbit extends Exchange {
             'interval': 1e-8,
         };
         //order.depth
-        const orderbook = await this.publicGetOrderDepth (this.extend (request, params));
-        const timestamp = orderbook.id * 1000;
+        const response = await this.publicGetOrderDepth (this.extend (request, params));
+        const orderbook = response.result;
+        const timestamp = response.id * 1000;
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 0, 1);
     }
 
