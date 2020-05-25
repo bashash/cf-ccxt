@@ -174,7 +174,7 @@ module.exports = class hotbit extends Exchange {
         const request = {
             'market': symbol,
             'limit': limit ? limit : 10,
-            'last_id': this.seconds(),
+            'last_id': 1,
         };
         const response = await this.publicGetMarketDeals (this.extend (request, params));
         const trades = response.result;
@@ -186,10 +186,12 @@ module.exports = class hotbit extends Exchange {
                 symbol,
             });
         }
+        console.log("result", result)
         return this.parseTrades(result, symbol, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
+        console.log("trade", trade)
         // {
         //     id: 1534853012,
         //     time: 1590434061.552552,
