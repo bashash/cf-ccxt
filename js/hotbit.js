@@ -159,7 +159,7 @@ module.exports = class hotbit extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         // await this.loadMarkets ();
         const request = {
-            'market': this.marketId (symbol),
+            'market': symbol,
             'limit': limit > 100 ? 100 : limit,
             'interval': 1e-8,
         };
