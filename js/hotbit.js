@@ -186,12 +186,12 @@ module.exports = class hotbit extends Exchange {
                 symbol,
             });
         }
-        console.log("result", result)
+        // console.log("result", result)
         return this.parseTrades(result, symbol, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
-        console.log("trade", trade)
+        // console.log("trade", trade)
         // {
         //     id: 1534853012,
         //     time: 1590434061.552552,
@@ -201,7 +201,7 @@ module.exports = class hotbit extends Exchange {
         // },
         const id = this.safeString (trade, 'id');
         const timestamp = trade.time;
-        const datetime = this.iso8601(timestamp);
+        const datetime = this.iso8601(timestamp * 1000);
         const amount = this.safeString (trade, 'amount');
         const price = this.safeString (trade, 'price');
         const side = this.safeString (trade, 'type');
