@@ -296,11 +296,6 @@ module.exports = class cointiger extends Exchange {
         }
         const response = await this.apiV2PrivatePostOrder (this.extend (request, params));
         const timestamp = this.milliseconds ();
-        const code = response['code'];
-
-        if (code !== '0') {
-            console.log(response);
-        }
 
         return {
             'info': response,
