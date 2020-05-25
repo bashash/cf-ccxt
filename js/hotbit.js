@@ -223,6 +223,45 @@ module.exports = class hotbit extends Exchange {
         };
     }
 
+    async fetchBalance (symbol) {
+
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
+
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
+
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+
+    }
+    
+    async createOrder () {
+
+    }
+
+    async cancelOrder () {
+
+    }
+    
+    createSignature (params) {
+        const query = [];
+        for (let i in params) {
+            query.push(`${i}=` + params[i]);
+        };
+        const queryString = query.join('&');
+        query.push('secret=' + this.secret);
+        const queryStringWithSecret = query.join('&');
+        const signature = this.hash(this.encode(queryStringWithSecret), 'md5');
+        return {
+            signature,
+            queryString,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/';
         request += path;
@@ -233,8 +272,10 @@ module.exports = class hotbit extends Exchange {
         console.log("method", method)
 
         if (api === 'private') {
-            // const signature = this.createSignature({ ...params, key: this.apiKey, secret: this.secret });
-            // request += '?' + this.urlencode ({ ...params, key: this.apiKey, sign: signature });
+            const { signature, queryString } = this.createSignature({ ...params, api_key: this.apiKey });
+            // request += '?' + this.urlencode ({ ...queryString, sign: signature });
+            request += `?${queryString}&sign=${signature}`;
+            console.log("request", request)
         } else {
             if (Object.keys (params).length) {
                 request += '?' + this.urlencode (params);
