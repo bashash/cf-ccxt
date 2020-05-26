@@ -29,6 +29,7 @@ module.exports = class hotbit extends Exchange {
                 'fetchMyTrades': true,
                 'createOrder': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
             },
             'headers': {
                 'Language': 'en_US',
@@ -57,6 +58,7 @@ module.exports = class hotbit extends Exchange {
                         'market.user_deals',//get trade history
                         'order.put_limit',//create order
                         'order.cancel',//cancel order
+                        'order.batch_cancel',//cancel up to 10 orders at the same time 
                     ],
                 },
             },
@@ -223,28 +225,139 @@ module.exports = class hotbit extends Exchange {
         };
     }
 
-    async fetchBalance (symbol) {
+    async fetchBalance () {
+        const request = {
+            'assets': [],
+        };
+        const response = await privatePostBalanceQuery (this.extend(request));
 
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
+        //market=ETH/BTC&offset=0&limit=100
+        const request = {
+            'market': symbol,
+            'offset': 0,
+            'limit': limit,
+        };
+        const response = await privatePostOrderPending (this.extend(request));
+        const marketPairName = symbol.split('/').join();
+        const openOrders = response.result[marketPairName].records;
 
+        return this.parseOrders (openOrders, symbol, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        const { id, ctime, type } = order;
+        const timestamp = ctime;
+        const datetime = this.iso8601(timestamp);
+        const symbol = market;
+        const status = order.status;
+        const price = this.safeFloat(order, 'price');
+        const side = type === 1 ? "sell" : "buy";
+        const amount = this.safeFloat(order, 'amount');
+        const cost = Number(order.price) * Number(order.amount);
+        const remaining = this.safeFloat(order, 'left');
+        const fee = this.safeFloat(order, 'taker_fee');
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': symbol,
+            'type': "limit",
+            'side': side,
+            'price': price,
+            'average': undefined,
+            'cost': cost,
+            'amount': amount,
+            'filled': undefined,
+            'remaining': remaining,
+            'fee': fee,
+            'info': order,
+        }
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
+        //market=ETH/BTC&start_time=1511967657&end_time =1512050400&offset=0&limit=100&side=1
+        const request = {
+            'market': symbol,
+            'offset': 0,
+            'limit': limit,
+            'start_time': this.seconds (),
+            'end_time': new Date ("May 28 2020").getTime() / 1000,//temp
+        };
+        const responseSell = await privatePostOrderFinished (this.extend({ ...request, side: 1 }));
+        const responseBuy = await privatePostOrderFinished (this.extend({ ...request, side: 2 }));
+        const marketPairName = symbol.split('/').join();
+        const closedOrdersBuy = responseSell.result[marketPairName].records;
+        const closedOrdersSell = responseBuy.result[marketPairName].records;
+        const closedAllOrders = [ ...closedOrdersBuy, ...closedOrdersSell ].sort((a, b) => b.id - a.id);
 
+        return this.parseOrders (closedAllOrders, symbol, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-
+        //market.user_deals
+        const request = {
+            'market': symbol,
+            'offset': 0,
+            'limit': limit,
+        };
+        const response = await privatePostMarketUserDeals (this.extend(request));
+        //what is an actual response? No info in api docs.
+        return this.parseTrades (response, symbol, since, limit);
     }
 
-    async createOrder () {
-
+    async createOrder (symbol, type = 'limit', side, amount, price = undefined, params = {}) {
+        //order.put_limit
+        //Only 200 orders are allowed to be placed simultaneously under the same transaction pair
+        const request = {
+            'market': symbol,
+            'side': side === "sell" ? 1 : 2, //1 = "sell"，2="buy"
+            'amount': amount,
+            'price': price,
+            'isFee': 1, //????Use deductable token to deduct or not 0 = "no(no)"，1="yes(yes)"
+        };
+        const response = await privatePostOrderPutLimit (this.extend(request, params));
+        const data = response.result;
+        const { id } = data;
+        return {
+            'id': id,
+            'info': data,
+        }
     }
 
-    async cancelOrder () {
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        //order.cancel
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` argument');
+        }
+        const request = {
+            'market': symbol,
+            'order_id': id,
+        };
+        const response = await privatePostOrderCancel (this.extend(request, params));
+        const data = response.result;
+        const { id } = data;
+        return {
+            'id': id,
+            'info': data,
+        }
+    }
 
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a `symbol` argument');
+        }
+        const request = {
+            'market': symbol,
+            'order_ids': ids,
+        };
+        const response = await privatePostOrderBatchCancel (this.extend(request, params));
+        const data = response.result;
+        return data;
     }
     
     createSignature (params) {
