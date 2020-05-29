@@ -36,7 +36,7 @@ module.exports = class hotbit extends Exchange {
             },
             'urls': {
                 'logo': 'https://assets.coingecko.com/markets/images/201/large/hotbit.jpg?1531043195',
-                'api': 'https://api.hotbit.io/api/v1/',
+                'api': 'https://api.hotbit.io/api/v1',
                 'www': 'https://www.hotbit.io/',
                 'doc': 'https://github.com/hotbitex/hotbit.io-api-docs/wiki/Rest-API-Doc',
             },
@@ -231,7 +231,7 @@ module.exports = class hotbit extends Exchange {
         };
         console.log("request", request)
         //balance.query
-        const response = await privatePostBalanceQuery (this.extend(request));
+        const response = await this.privatePostBalanceQuery (this.extend(request));
         console.log(response)
     }
 
@@ -242,7 +242,7 @@ module.exports = class hotbit extends Exchange {
             'offset': 0,
             'limit': limit,
         };
-        const response = await privatePostOrderPending (this.extend(request));
+        const response = await this.privatePostOrderPending (this.extend(request));
         const marketPairName = symbol.split('/').join();
         const openOrders = response.result[marketPairName].records;
 
@@ -290,8 +290,8 @@ module.exports = class hotbit extends Exchange {
             'start_time': this.seconds (),
             'end_time': new Date ("May 28 2020").getTime() / 1000,//temp
         };
-        const responseSell = await privatePostOrderFinished (this.extend({ ...request, side: 1 }));
-        const responseBuy = await privatePostOrderFinished (this.extend({ ...request, side: 2 }));
+        const responseSell = await this.privatePostOrderFinished (this.extend({ ...request, side: 1 }));
+        const responseBuy = await this.privatePostOrderFinished (this.extend({ ...request, side: 2 }));
         const marketPairName = symbol.split('/').join();
         const closedOrdersBuy = responseSell.result[marketPairName].records;
         const closedOrdersSell = responseBuy.result[marketPairName].records;
@@ -307,7 +307,7 @@ module.exports = class hotbit extends Exchange {
             'offset': 0,
             'limit': limit,
         };
-        const response = await privatePostMarketUserDeals (this.extend(request));
+        const response = await this.privatePostMarketUserDeals (this.extend(request));
         //what is an actual response? No info in api docs.
         return this.parseTrades (response, symbol, since, limit);
     }
@@ -322,7 +322,7 @@ module.exports = class hotbit extends Exchange {
             'price': price,
             'isFee': 1, //????Use deductable token to deduct or not 0 = "no(no)"，1="yes(yes)"
         };
-        const response = await privatePostOrderPutLimit (this.extend(request, params));
+        const response = await this.privatePostOrderPutLimit (this.extend(request, params));
         const data = response.result;
         // const { id } = data;
         return {
@@ -340,7 +340,7 @@ module.exports = class hotbit extends Exchange {
             'market': symbol,
             'order_id': id,
         };
-        const response = await privatePostOrderCancel (this.extend(request, params));
+        const response = await this.privatePostOrderCancel (this.extend(request, params));
         const data = response.result;
         // const { id } = data;
         return {
@@ -357,7 +357,7 @@ module.exports = class hotbit extends Exchange {
             'market': symbol,
             'order_ids': ids,
         };
-        const response = await privatePostOrderBatchCancel (this.extend(request, params));
+        const response = await this.privatePostOrderBatchCancel (this.extend(request, params));
         const data = response.result;
         return data;
     }
