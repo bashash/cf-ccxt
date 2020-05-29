@@ -3,8 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
-const CryptoJS = require ('./static_dependencies/crypto-js/crypto-js');
+const { ExchangeError, ArgumentsRequired, BadRequest, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection } = require('./base/errors');
+const CryptoJS = require('./static_dependencies/crypto-js/crypto-js');
 //  ---------------------------------------------------------------------------
 
 module.exports = class hotbit extends Exchange {
@@ -48,6 +48,7 @@ module.exports = class hotbit extends Exchange {
                         'market.status',//get ticker 
                         'order.depth',//get orderbook
                         'market.deals',//get trades
+                        'server.time',//get server time
                     ]
                 },
                 'private': {
@@ -65,9 +66,9 @@ module.exports = class hotbit extends Exchange {
         });
     }
 
-    async fetchMarkets () {
-    // [
-    //     {
+    async fetchMarkets() {
+        // [
+        //     {
         //     money_prec: 8,
         //     name: "QASHBTC",
         //     fee_prec: 4,
@@ -75,9 +76,9 @@ module.exports = class hotbit extends Exchange {
         //     money: "BTC",
         //     min_amount: "0.1",
         //     stock_prec: 2
-    //     },
-    //     ...
-    // ]
+        //     },
+        //     ...
+        // ]
         const response = await this.publicGetMarketList();
         const markets = response.result;
         const result = [];
@@ -107,7 +108,7 @@ module.exports = class hotbit extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker(symbol, params = {}) {
         // {
         //     "period": 10,
         //     "last": "0.0743",
@@ -122,8 +123,8 @@ module.exports = class hotbit extends Exchange {
             'market': symbol,
             'period': 10,
         };
-        const response = await this.publicGetMarketStatus(this.extend (request, params));
-        const ticker = response.result;        
+        const response = await this.publicGetMarketStatus(this.extend(request, params));
+        const ticker = response.result;
         const last = Number(ticker.last);
         const open = Number(ticker.open);
         const close = Number(ticker.close);
@@ -132,7 +133,7 @@ module.exports = class hotbit extends Exchange {
         const volume = Number(ticker.volume);
         const deal = Number(ticker.deal);
         const timestamp = response.id;
-        const datetime = this.iso8601 (timestamp);
+        const datetime = this.iso8601(timestamp);
 
         return {
             'symbol': symbol,
@@ -158,7 +159,7 @@ module.exports = class hotbit extends Exchange {
         };;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
         // await this.loadMarkets ();
         const request = {
             'market': symbol,
@@ -166,19 +167,19 @@ module.exports = class hotbit extends Exchange {
             'interval': 1e-8,
         };
         //order.depth
-        const response = await this.publicGetOrderDepth (this.extend (request, params));
+        const response = await this.publicGetOrderDepth(this.extend(request, params));
         const orderbook = response.result;
         const timestamp = response.id * 1000;
-        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 0, 1);
+        return this.parseOrderBook(orderbook, timestamp, 'bids', 'asks', 0, 1);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         const request = {
             'market': symbol,
             'limit': limit ? limit : 10,
             'last_id': 1,
         };
-        const response = await this.publicGetMarketDeals (this.extend (request, params));
+        const response = await this.publicGetMarketDeals(this.extend(request, params));
         const trades = response.result;
         const result = [];
         for (let i = 0; i < trades.length; i++) {
@@ -192,7 +193,7 @@ module.exports = class hotbit extends Exchange {
         return this.parseTrades(result, symbol, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade(trade, market = undefined) {
         // console.log("trade", trade)
         // {
         //     id: 1534853012,
@@ -201,12 +202,12 @@ module.exports = class hotbit extends Exchange {
         //     amount: "0.308321",
         //     type: "sell"
         // },
-        const id = this.safeString (trade, 'id');
+        const id = this.safeString(trade, 'id');
         const timestamp = trade.time;
         const datetime = this.iso8601(timestamp * 1000);
-        const amount = this.safeString (trade, 'amount');
-        const price = this.safeString (trade, 'price');
-        const side = this.safeString (trade, 'type');
+        const amount = this.safeString(trade, 'amount');
+        const price = this.safeString(trade, 'price');
+        const side = this.safeString(trade, 'type');
 
         return {
             'id': id,
@@ -225,12 +226,12 @@ module.exports = class hotbit extends Exchange {
         };
     }
 
-    async fetchBalance () {
+    async fetchBalance() {
         const request = {
             'assets': '[]',
         };
         //balance.query
-        const response = await this.privatePostBalanceQuery (this.extend(request));
+        const response = await this.privatePostBalanceQuery(this.extend(request));
         // {
         //     error: null,
         //     id: 1590775763,
@@ -242,32 +243,32 @@ module.exports = class hotbit extends Exchange {
         //     },
         //     ieo_use: '0'
         //   }
-        const balances = this.safeValue (response, 'result');
+        const balances = this.safeValue(response, 'result');
         const result = { 'info': response };
         const keys = Object.keys(balances);
 
         for (let i = 0; i < keys.length; i++) {
             const balance = balances[keys[i]];
             const currencyId = keys[i];
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'freeze');
-            const total = this.safeFloat (balance, 'available') + this.safeFloat (balance, 'freeze');
+            const code = this.safeCurrencyCode(currencyId);
+            const account = this.account();
+            account['free'] = this.safeFloat(balance, 'available');
+            account['used'] = this.safeFloat(balance, 'freeze');
+            const total = this.safeFloat(balance, 'available') + this.safeFloat(balance, 'freeze');
             account['total'] = total;
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance(result);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
+    async fetchOpenOrders(symbol = undefined, since = undefined, limit = 50, params = {}) {
         //market=ETH/BTC&offset=0&limit=100
         const request = {
             'market': symbol,
             'offset': 0,
             'limit': limit,
         };
-        const response = await this.privatePostOrderPending (this.extend(request));
+        const response = await this.privatePostOrderPending(this.extend(request));
         // {
         //     error: null,
         //     id: 1590777388,
@@ -275,10 +276,10 @@ module.exports = class hotbit extends Exchange {
         // }
         const marketPairName = symbol.split('/').join('');
         const openOrders = response.result[marketPairName].records;
-        return this.parseOrders (openOrders, symbol, since, limit);
+        return this.parseOrders(openOrders, symbol, since, limit);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder(order, market = undefined) {
         const { id, ctime, type } = order;
         const timestamp = ctime;
         const datetime = this.iso8601(timestamp);
@@ -310,43 +311,59 @@ module.exports = class hotbit extends Exchange {
         }
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
+    async fetchServerTime () {
+        const response = await this.publicGetServerTime();
+        // {
+        //     error: null,
+        //     result: 1590783963,
+        //     id: 0
+        // }
+        const time = response.result;
+        return time;
+    }
+
+    async fetchClosedOrders(symbol = undefined, since = undefined, limit = 50, params = {}) {
+        const serverTime = await this.fetchServerTime();
+        console.log("time", serverTime)
         //market=ETH/BTC&start_time=1511967657&end_time =1512050400&offset=0&limit=100&side=1
         const request = {
             'market': symbol,
             'offset': 0,
             'limit': limit,
-            // 'start_time': this.seconds (),
-            // 'end_time': new Date ("May 28 2020").getTime() / 1000,//temp
-            'start_time': 1511967657,
-            'end_time': 1512050400,
+            'start_time': serverTime,
+            'end_time': 1512050400,//temp
         };
-        const responseSell = await this.privatePostOrderFinished (this.extend({ ...request, side: 1 }));
+        const responseSell = await this.privatePostOrderFinished(this.extend({ ...request, side: 1 }));
         console.log("responseSell", responseSell)
-        const responseBuy = await this.privatePostOrderFinished (this.extend({ ...request, side: 2 }));
+        const responseBuy = await this.privatePostOrderFinished(this.extend({ ...request, side: 2 }));
         console.log("responseBuy", responseBuy)
         const marketPairName = symbol.split('/').join('');
-        const closedOrdersBuy = responseSell.result[marketPairName].records;
-        const closedOrdersSell = responseBuy.result[marketPairName].records;
-        const closedAllOrders = [ ...closedOrdersBuy, ...closedOrdersSell ].sort((a, b) => b.id - a.id);
+        // {
+        //     error: null,
+        //     result: { offset: 0, records: [], limit: 10 },
+        //     id: 1590779677
+        //   }
+        const closedOrdersBuy = responseSell.result.records;
+        const closedOrdersSell = responseBuy.result.records;
+        const closedAllOrders = [...closedOrdersBuy, ...closedOrdersSell].sort((a, b) => b.id - a.id);
 
-        return this.parseOrders (closedAllOrders, symbol, since, limit);
+        return this.parseOrders(closedAllOrders, symbol, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         //market.user_deals
         const request = {
             'market': symbol,
             'offset': 0,
             'limit': limit,
         };
-        const response = await this.privatePostMarketUserDeals (this.extend(request));
+        const response = await this.privatePostMarketUserDeals(this.extend(request));
         console.log("fetchMyTrades", response)
         //what is an actual response? No info in api docs.
-        return this.parseTrades (response, symbol, since, limit);
+        return this.parseTrades(response, symbol, since, limit);
     }
 
-    async createOrder (symbol, type = 'limit', side, amount, price = undefined, params = {}) {
+    async createOrder(symbol, type = 'limit', side, amount, price = undefined, params = {}) {
         //order.put_limit
         //Only 200 orders are allowed to be placed simultaneously under the same transaction pair
         const request = {
@@ -356,7 +373,7 @@ module.exports = class hotbit extends Exchange {
             'price': price,
             'isFee': 1, //????Use deductable token to deduct or not 0 = "no(no)"，1="yes(yes)"
         };
-        const response = await this.privatePostOrderPutLimit (this.extend(request, params));
+        const response = await this.privatePostOrderPutLimit(this.extend(request, params));
         const data = response.result;
         // const { id } = data;
         return {
@@ -365,16 +382,16 @@ module.exports = class hotbit extends Exchange {
         }
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder(id, symbol = undefined, params = {}) {
         //order.cancel
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` argument');
+            throw new ArgumentsRequired(this.id + ' cancelOrder() requires a `symbol` argument');
         }
         const request = {
             'market': symbol,
             'order_id': id,
         };
-        const response = await this.privatePostOrderCancel (this.extend(request, params));
+        const response = await this.privatePostOrderCancel(this.extend(request, params));
         const data = response.result;
         // const { id } = data;
         return {
@@ -383,20 +400,20 @@ module.exports = class hotbit extends Exchange {
         }
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) {
+    async cancelOrders(ids, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a `symbol` argument');
+            throw new ArgumentsRequired(this.id + ' cancelOrders() requires a `symbol` argument');
         }
         const request = {
             'market': symbol,
             'order_ids': ids,
         };
-        const response = await this.privatePostOrderBatchCancel (this.extend(request, params));
+        const response = await this.privatePostOrderBatchCancel(this.extend(request, params));
         const data = response.result;
         return data;
     }
-    
-    createSignature (params) {
+
+    createSignature(params) {
         const query = [];
         for (let i in params) {
             console.log("params", params[i])
@@ -416,10 +433,10 @@ module.exports = class hotbit extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/';
         request += path;
-        
+
         console.log("params", params)
         console.log("path", path)
         console.log("api", api)
@@ -436,8 +453,8 @@ module.exports = class hotbit extends Exchange {
             // }
             console.log("body", body)
         } else {
-            if (Object.keys (params).length) {
-                request += '?' + this.urlencode (params);
+            if (Object.keys(params).length) {
+                request += '?' + this.urlencode(params);
             }
         }
 
