@@ -229,10 +229,8 @@ module.exports = class hotbit extends Exchange {
         const request = {
             'assets': '[]',
         };
-        console.log("request", request, this.extend(request))
         //balance.query
         const response = await this.privatePostBalanceQuery (this.extend(request));
-        console.log(response)
         // {
         //     error: null,
         //     id: 1590775763,
@@ -247,14 +245,10 @@ module.exports = class hotbit extends Exchange {
         const balances = this.safeValue (response, 'result');
         const result = { 'info': response };
         const keys = Object.keys(balances);
-        const values = Object.values(balances);
 
         for (let i = 0; i < keys.length; i++) {
             const balance = balances[keys[i]];
-            console.log("balance", balance)
-            // const currencyId = this.safeString (balance, 'name');
             const currencyId = keys[i];
-            console.log("currencyId", currencyId)
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'available');
