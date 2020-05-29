@@ -275,6 +275,7 @@ module.exports = class hotbit extends Exchange {
         //     result: { BTCUSDT: { limit: 10, offset: 0, total: 0, records: [] } }
         // }
         const marketPairName = symbol.split('/').join();
+        console.log(marketPairName)
         const openOrders = response.result[marketPairName].records;
         console.log("openOrders", openOrders)
         return this.parseOrders (openOrders, symbol, since, limit);
