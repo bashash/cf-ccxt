@@ -269,9 +269,14 @@ module.exports = class hotbit extends Exchange {
         };
         const response = await this.privatePostOrderPending (this.extend(request));
         console.log("fetchOpenOrders", response)
+        // {
+        //     error: null,
+        //     id: 1590777388,
+        //     result: { BTCUSDT: { limit: 10, offset: 0, total: 0, records: [] } }
+        // }
         const marketPairName = symbol.split('/').join();
         const openOrders = response.result[marketPairName].records;
-
+        console.log("openOrders", openOrders)
         return this.parseOrders (openOrders, symbol, since, limit);
     }
 
