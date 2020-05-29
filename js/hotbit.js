@@ -229,7 +229,7 @@ module.exports = class hotbit extends Exchange {
         const request = {
             'assets': [],
         };
-        console.log("request", request)
+        console.log("request", request, this.extend(request))
         //balance.query
         const response = await this.privatePostBalanceQuery (this.extend(request));
         console.log(response)
@@ -365,6 +365,7 @@ module.exports = class hotbit extends Exchange {
     createSignature (params) {
         const query = [];
         for (let i in params) {
+            console.log("params", params[i])
             query.push(`${i}=` + params[i]);
         };
         const sortedQueryArray = query.sort();
