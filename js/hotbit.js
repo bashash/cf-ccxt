@@ -396,7 +396,8 @@ module.exports = class hotbit extends Exchange {
             // request += '?' + this.urlencode ({ ...queryString, sign: signature });
             // request += `?${queryString}&sign=${signature}`;
             // console.log("request", request)
-            body = this.json (`${queryString}&sign=${signature}`);
+            // body = this.json (`${queryString}&sign=${signature}`);
+            body = `${queryString}&sign=${signature}`;
             // if (Object.keys (params).length) {
             // }
             console.log("body", body)
