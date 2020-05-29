@@ -274,7 +274,7 @@ module.exports = class hotbit extends Exchange {
         //     id: 1590777388,
         //     result: { BTCUSDT: { limit: 10, offset: 0, total: 0, records: [] } }
         // }
-        const marketPairName = symbol.split('/').join();
+        const marketPairName = symbol.split('/').join('');
         console.log(marketPairName)
         const openOrders = response.result[marketPairName].records;
         console.log("openOrders", openOrders)
@@ -324,7 +324,7 @@ module.exports = class hotbit extends Exchange {
         };
         const responseSell = await this.privatePostOrderFinished (this.extend({ ...request, side: 1 }));
         const responseBuy = await this.privatePostOrderFinished (this.extend({ ...request, side: 2 }));
-        const marketPairName = symbol.split('/').join();
+        const marketPairName = symbol.split('/').join('');
         const closedOrdersBuy = responseSell.result[marketPairName].records;
         const closedOrdersSell = responseBuy.result[marketPairName].records;
         const closedAllOrders = [ ...closedOrdersBuy, ...closedOrdersSell ].sort((a, b) => b.id - a.id);
