@@ -229,8 +229,9 @@ module.exports = class hotbit extends Exchange {
         const request = {
             'assets': [],
         };
+        //balance.query
         const response = await privatePostBalanceQuery (this.extend(request));
-
+        console.log(response)
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
