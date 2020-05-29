@@ -322,9 +322,9 @@ module.exports = class hotbit extends Exchange {
         };
         const response = await privatePostOrderPutLimit (this.extend(request, params));
         const data = response.result;
-        const { id } = data;
+        // const { id } = data;
         return {
-            'id': id,
+            'id': data.id,
             'info': data,
         }
     }
@@ -340,9 +340,9 @@ module.exports = class hotbit extends Exchange {
         };
         const response = await privatePostOrderCancel (this.extend(request, params));
         const data = response.result;
-        const { id } = data;
+        // const { id } = data;
         return {
-            'id': id,
+            'id': data.id,
             'info': data,
         }
     }
