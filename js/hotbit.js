@@ -268,16 +268,13 @@ module.exports = class hotbit extends Exchange {
             'limit': limit,
         };
         const response = await this.privatePostOrderPending (this.extend(request));
-        console.log("fetchOpenOrders", response)
         // {
         //     error: null,
         //     id: 1590777388,
         //     result: { BTCUSDT: { limit: 10, offset: 0, total: 0, records: [] } }
         // }
         const marketPairName = symbol.split('/').join('');
-        console.log(marketPairName)
         const openOrders = response.result[marketPairName].records;
-        console.log("openOrders", openOrders)
         return this.parseOrders (openOrders, symbol, since, limit);
     }
 
@@ -323,7 +320,9 @@ module.exports = class hotbit extends Exchange {
             'end_time': new Date ("May 28 2020").getTime() / 1000,//temp
         };
         const responseSell = await this.privatePostOrderFinished (this.extend({ ...request, side: 1 }));
+        console.log("responseSell", responseSell)
         const responseBuy = await this.privatePostOrderFinished (this.extend({ ...request, side: 2 }));
+        console.log("responseBuy", responseBuy)
         const marketPairName = symbol.split('/').join('');
         const closedOrdersBuy = responseSell.result[marketPairName].records;
         const closedOrdersSell = responseBuy.result[marketPairName].records;
