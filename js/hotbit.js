@@ -229,6 +229,7 @@ module.exports = class hotbit extends Exchange {
         const request = {
             'assets': [],
         };
+        console.log("request", request)
         //balance.query
         const response = await privatePostBalanceQuery (this.extend(request));
         console.log(response)
