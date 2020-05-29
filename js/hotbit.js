@@ -233,6 +233,37 @@ module.exports = class hotbit extends Exchange {
         //balance.query
         const response = await this.privatePostBalanceQuery (this.extend(request));
         console.log(response)
+        // {
+        //     error: null,
+        //     id: 1590775763,
+        //     result: {
+        //       WNL: { available: '0', freeze: '0' },
+        //       ETH: { available: '0', freeze: '0' },
+        //       GOD: { available: '0', freeze: '0' },
+        //       ...
+        //     },
+        //     ieo_use: '0'
+        //   }
+        const balances = this.safeValue (response, 'result');
+        const result = { 'info': response };
+        const keys = Object.keys(balances);
+        const values = Object.values(balances);
+
+        for (let i = 0; i < keys.length; i++) {
+            const balance = balances[keys[i]];
+            console.log("balance", balance)
+            // const currencyId = this.safeString (balance, 'name');
+            const currencyId = keys[i];
+            console.log("currencyId", currencyId)
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['used'] = this.safeFloat (balance, 'freeze');
+            const total = this.safeFloat (balance, 'available') + this.safeFloat (balance, 'freeze');
+            account['total'] = total;
+            result[code] = account;
+        }
+        return this.parseBalance (result);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
@@ -369,13 +400,13 @@ module.exports = class hotbit extends Exchange {
             query.push(`${i}=` + params[i]);
         };
         const sortedQueryArray = query.sort();
-        console.log("sortedQueryArray", sortedQueryArray)
+        // console.log("sortedQueryArray", sortedQueryArray)
         const queryString = sortedQueryArray.join('&');
         sortedQueryArray.push('secret_key=' + this.secret);
         const queryStringWithSecret = sortedQueryArray.join('&');
-        console.log("queryStringWithSecret", queryStringWithSecret)
+        // console.log("queryStringWithSecret", queryStringWithSecret)
         const signature = this.hash(this.encode(queryStringWithSecret), 'md5').toUpperCase();
-        console.log("signature", signature)
+        // console.log("signature", signature)
         return {
             signature,
             queryString,
