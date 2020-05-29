@@ -330,8 +330,8 @@ module.exports = class hotbit extends Exchange {
             'market': symbol,
             'offset': 0,
             'limit': limit,
-            'start_time': serverTime,
-            'end_time': 1512050400,//temp
+            'start_time': 1512050400,
+            'end_time': serverTime,//temp
         };
         const responseSell = await this.privatePostOrderFinished(this.extend({ ...request, side: 1 }));
         console.log("responseSell", responseSell)
