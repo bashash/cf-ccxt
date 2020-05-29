@@ -268,6 +268,7 @@ module.exports = class hotbit extends Exchange {
             'limit': limit,
         };
         const response = await this.privatePostOrderPending (this.extend(request));
+        console.log("fetchOpenOrders", response)
         const marketPairName = symbol.split('/').join();
         const openOrders = response.result[marketPairName].records;
 
@@ -333,6 +334,7 @@ module.exports = class hotbit extends Exchange {
             'limit': limit,
         };
         const response = await this.privatePostMarketUserDeals (this.extend(request));
+        console.log("fetchMyTrades", response)
         //what is an actual response? No info in api docs.
         return this.parseTrades (response, symbol, since, limit);
     }
