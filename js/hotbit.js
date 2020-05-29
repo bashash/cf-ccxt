@@ -227,7 +227,7 @@ module.exports = class hotbit extends Exchange {
 
     async fetchBalance () {
         const request = {
-            'assets': [],
+            'assets': '[]',
         };
         console.log("request", request, this.extend(request))
         //balance.query
