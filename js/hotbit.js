@@ -36,7 +36,7 @@ module.exports = class hotbit extends Exchange {
             },
             'urls': {
                 'logo': 'https://assets.coingecko.com/markets/images/201/large/hotbit.jpg?1531043195',
-                'api': 'https://api.hotbit.io/api/v1',
+                'api': 'https://api.hotbit.io/api/v1/',
                 'www': 'https://www.hotbit.io/',
                 'doc': 'https://github.com/hotbitex/hotbit.io-api-docs/wiki/Rest-API-Doc',
             },
