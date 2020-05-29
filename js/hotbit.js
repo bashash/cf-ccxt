@@ -371,7 +371,7 @@ module.exports = class hotbit extends Exchange {
         const sortedQueryArray = query.sort();
         console.log("sortedQueryArray", sortedQueryArray)
         const queryString = sortedQueryArray.join('&');
-        sortedQueryArray.push('secret=' + this.secret);
+        sortedQueryArray.push('secret_key=' + this.secret);
         const queryStringWithSecret = sortedQueryArray.join('&');
         console.log("queryStringWithSecret", queryStringWithSecret)
         const signature = this.hash(this.encode(queryStringWithSecret), 'md5').toUpperCase();
