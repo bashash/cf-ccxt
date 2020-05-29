@@ -416,17 +416,13 @@ module.exports = class hotbit extends Exchange {
     createSignature(params) {
         const query = [];
         for (let i in params) {
-            console.log("params", params[i])
             query.push(`${i}=` + params[i]);
         };
         const sortedQueryArray = query.sort();
-        // console.log("sortedQueryArray", sortedQueryArray)
         const queryString = sortedQueryArray.join('&');
         sortedQueryArray.push('secret_key=' + this.secret);
         const queryStringWithSecret = sortedQueryArray.join('&');
-        // console.log("queryStringWithSecret", queryStringWithSecret)
         const signature = this.hash(this.encode(queryStringWithSecret), 'md5').toUpperCase();
-        // console.log("signature", signature)
         return {
             signature,
             queryString,
@@ -444,14 +440,7 @@ module.exports = class hotbit extends Exchange {
 
         if (api === 'private') {
             const { signature, queryString } = this.createSignature({ ...params, api_key: this.apiKey });
-            // request += '?' + this.urlencode ({ ...queryString, sign: signature });
-            // request += `?${queryString}&sign=${signature}`;
-            // console.log("request", request)
-            // body = this.json (`${queryString}&sign=${signature}`);
             body = `${queryString}&sign=${signature}`;
-            // if (Object.keys (params).length) {
-            // }
-            console.log("body", body)
         } else {
             if (Object.keys(params).length) {
                 request += '?' + this.urlencode(params);
