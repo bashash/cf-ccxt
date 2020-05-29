@@ -368,10 +368,13 @@ module.exports = class hotbit extends Exchange {
             query.push(`${i}=` + params[i]);
         };
         const sortedQueryArray = query.sort();
+        console.log("sortedQueryArray", sortedQueryArray)
         const queryString = sortedQueryArray.join('&');
         sortedQueryArray.push('secret=' + this.secret);
         const queryStringWithSecret = sortedQueryArray.join('&');
+        console.log("queryStringWithSecret", queryStringWithSecret)
         const signature = this.hash(this.encode(queryStringWithSecret), 'md5');
+        console.log("signature", signature)
         return {
             signature,
             queryString,
@@ -395,6 +398,7 @@ module.exports = class hotbit extends Exchange {
             body = this.json (`${queryString}&sign=${signature}`);
             // if (Object.keys (params).length) {
             // }
+            console.log("body", body)
         } else {
             if (Object.keys (params).length) {
                 request += '?' + this.urlencode (params);
