@@ -390,8 +390,11 @@ module.exports = class hotbit extends Exchange {
         if (api === 'private') {
             const { signature, queryString } = this.createSignature({ ...params, api_key: this.apiKey });
             // request += '?' + this.urlencode ({ ...queryString, sign: signature });
-            request += `?${queryString}&sign=${signature}`;
-            console.log("request", request)
+            // request += `?${queryString}&sign=${signature}`;
+            // console.log("request", request)
+            body = this.json (`${queryString}&sign=${signature}`);
+            // if (Object.keys (params).length) {
+            // }
         } else {
             if (Object.keys (params).length) {
                 request += '?' + this.urlencode (params);
