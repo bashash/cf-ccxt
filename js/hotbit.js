@@ -324,20 +324,16 @@ module.exports = class hotbit extends Exchange {
 
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = 50, params = {}) {
         const serverTime = await this.fetchServerTime();
-        console.log("time", serverTime)
         //market=ETH/BTC&start_time=1511967657&end_time =1512050400&offset=0&limit=100&side=1
         const request = {
             'market': symbol,
             'offset': 0,
             'limit': limit,
-            'start_time': 1512050400,
-            'end_time': serverTime,//temp
+            'start_time': 1512050400,//temp
+            'end_time': serverTime,
         };
         const responseSell = await this.privatePostOrderFinished(this.extend({ ...request, side: 1 }));
-        console.log("responseSell", responseSell)
         const responseBuy = await this.privatePostOrderFinished(this.extend({ ...request, side: 2 }));
-        console.log("responseBuy", responseBuy)
-        const marketPairName = symbol.split('/').join('');
         // {
         //     error: null,
         //     result: { offset: 0, records: [], limit: 10 },
@@ -358,9 +354,13 @@ module.exports = class hotbit extends Exchange {
             'limit': limit,
         };
         const response = await this.privatePostMarketUserDeals(this.extend(request));
-        console.log("fetchMyTrades", response)
-        //what is an actual response? No info in api docs.
-        return this.parseTrades(response, symbol, since, limit);
+        // {
+        //     error: null,
+        //     result: { offset: 0, records: [], limit: 10 },
+        //     id: 1590784865
+        // }
+        const trades = response.result.records;
+        return this.parseTrades(trades, symbol, since, limit);
     }
 
     async createOrder(symbol, type = 'limit', side, amount, price = undefined, params = {}) {
