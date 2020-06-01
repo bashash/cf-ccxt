@@ -40,7 +40,7 @@ module.exports = (exchange, ticker, method, symbol) => {
     const keys = [ 'datetime', 'timestamp', 'high', 'low', 'bid', 'ask', 'baseVolume', 'quoteVolume', 'vwap' ]
 
     assert (!('first' in ticker), '`first` field leftover in ' + exchange.id)
-    assert (ticker['last'] === ticker['close'], '`last` != `close` in ' + exchange.id)
+    // assert (ticker['last'] === ticker['close'], '`last` != `close` in ' + exchange.id)
 
     log (ticker['datetime'], exchange.id, method, ticker['symbol'].green, ticker['last'])
 
