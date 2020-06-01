@@ -280,13 +280,58 @@ module.exports = class hotbit extends Exchange {
     }
 
     parseOrder(order, market = undefined) {
-        const { id, ctime, type } = order;
+        // sample response of closed order
+        // {
+        //     id: 7832848716,
+        //     taker_fee: '0.0020',
+        //     create_time: 1591048246.248432,
+        //     side: 1,
+        //     finish_time: 1591048388.999197,
+        //     user_id: 641936,
+        //     t: 1,
+        //     market: 'XRPUSDT',
+        //     amount: '10.00000000',
+        //     fee_stock: '',
+        //     source: '96.49.166.3',
+        //     deal_money: '0E-16',
+        //     price: '0.2100000000000000',
+        //     maker_fee: '-0.0005',
+        //     deal_stock: '0E-8',
+        //     deal_fee: '0E-16',
+        //     status: 136,
+        //     deal_fee_alt: '0E-16',
+        //     alt_fee: '0.0000'
+        // }
+        // sample response of open order
+        // {
+        //     id: 7832848716,
+        //     source: '96.49.166.3',
+        //     market: 'XRPUSDT',
+        //     ctime: 1591048246.248432,
+        //     type: 1,
+        //     fee_stock: '',
+        //     side: 1,//#sign of buyer and seller 1-seller，2-buyer
+        //     user: 641936,
+        //     mtime: 1591048246.248432,
+        //     price: '0.21',
+        //     amount: '10',
+        //     deal_stock: '0',
+        //     taker_fee: '0.002',
+        //     deal_fee: '0',
+        //     maker_fee: '-0.0005',
+        //     left: '10',
+        //     deal_money: '0',
+        //     alt_fee: '0',
+        //     deal_fee_alt: '0',
+        //     status: 128
+        // }
+        const { id, ctime } = order;
         const timestamp = ctime;
         const datetime = this.iso8601(timestamp);
         const symbol = market;
         const status = order.status;
         const price = this.safeFloat(order, 'price');
-        const side = type === 1 ? "sell" : "buy";
+        const side = order.side === 1 ? "sell" : "buy";
         const amount = this.safeFloat(order, 'amount');
         const cost = Number(order.price) * Number(order.amount);
         const remaining = this.safeFloat(order, 'left');
@@ -371,11 +416,10 @@ module.exports = class hotbit extends Exchange {
             'side': side === "sell" ? 1 : 2, //1 = "sell"，2="buy"
             'amount': amount,
             'price': price,
-            'isFee': 1, //????Use deductable token to deduct or not 0 = "no(no)"，1="yes(yes)"
+            'isfee': 1, //????Use deductable token to deduct or not 0 = "no(no)"，1="yes(yes)"
         };
         const response = await this.privatePostOrderPutLimit(this.extend(request, params));
         const data = response.result;
-        // const { id } = data;
         return {
             'id': data.id,
             'info': data,
@@ -393,7 +437,6 @@ module.exports = class hotbit extends Exchange {
         };
         const response = await this.privatePostOrderCancel(this.extend(request, params));
         const data = response.result;
-        // const { id } = data;
         return {
             'id': data.id,
             'info': data,
@@ -406,7 +449,7 @@ module.exports = class hotbit extends Exchange {
         }
         const request = {
             'market': symbol,
-            'order_ids': ids,
+            'orders_id': JSON.stringify(ids),
         };
         const response = await this.privatePostOrderBatchCancel(this.extend(request, params));
         const data = response.result;
@@ -416,6 +459,7 @@ module.exports = class hotbit extends Exchange {
     createSignature(params) {
         const query = [];
         for (let i in params) {
+            console.log("params", params[i])
             query.push(`${i}=` + params[i]);
         };
         const sortedQueryArray = query.sort();
@@ -441,6 +485,7 @@ module.exports = class hotbit extends Exchange {
         if (api === 'private') {
             const { signature, queryString } = this.createSignature({ ...params, api_key: this.apiKey });
             body = `${queryString}&sign=${signature}`;
+            console.log("body", body)
         } else {
             if (Object.keys(params).length) {
                 request += '?' + this.urlencode(params);
