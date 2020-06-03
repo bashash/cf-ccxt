@@ -266,7 +266,7 @@ module.exports = class hotbit extends Exchange {
         const request = {
             'market': symbol,
             'offset': 0,
-            'limit': limit > 100 ? limit : 100,
+            'limit': limit > 100 ? 100 : limit,
         };
         const response = await this.privatePostOrderPending(this.extend(request));
         // {
@@ -373,7 +373,7 @@ module.exports = class hotbit extends Exchange {
         const request = {
             'market': symbol,
             'offset': 0,
-            'limit': limit,
+            'limit': limit > 100 ? 100 : limit,
             'start_time': 1512050400,//temp
             'end_time': serverTime,
         };
