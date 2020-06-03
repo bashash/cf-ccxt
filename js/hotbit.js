@@ -266,7 +266,7 @@ module.exports = class hotbit extends Exchange {
         const request = {
             'market': symbol,
             'offset': 0,
-            'limit': limit,
+            'limit': limit > 100 ? limit : 100,
         };
         const response = await this.privatePostOrderPending(this.extend(request));
         // {
@@ -477,10 +477,10 @@ module.exports = class hotbit extends Exchange {
         let request = '/';
         request += path;
 
-        console.log("params", params)
-        console.log("path", path)
-        console.log("api", api)
-        console.log("method", method)
+        // console.log("params", params)
+        // console.log("path", path)
+        // console.log("api", api)
+        // console.log("method", method)
 
         if (api === 'private') {
             const { signature, queryString } = this.createSignature({ ...params, api_key: this.apiKey });
@@ -493,7 +493,7 @@ module.exports = class hotbit extends Exchange {
         }
 
         const url = this.urls['api'] + request;
-        console.log('url', url)
+        // console.log('url', url)
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
