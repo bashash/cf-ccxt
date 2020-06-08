@@ -121,7 +121,7 @@ module.exports = class hotbit extends Exchange {
         // }
         const request = {
             'market': symbol,
-            'period': 10,
+            'period': 86400,
         };
         const response = await this.publicGetMarketStatus(this.extend(request, params));
         const ticker = response.result;
