@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection } = require('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -144,21 +144,21 @@ module.exports = class cointiger extends Exchange {
 
     async fetchBalance(params = {}) {
         await this.loadMarkets();
-        const response = await this.tapiPrivateGetUserBalance (params);
-        const balances = this.safeValue (response, 'data');
+        const response = await this.tapiPrivateGetUserBalance(params);
+        const balances = this.safeValue(response, 'data');
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const currencyId = this.safeString (balance, 'coin');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['used'] = this.safeFloat (balance, 'lock');
-            account['free'] = this.safeFloat (balance, 'normal');
-            const total = this.safeFloat (balance, 'normal') + this.safeFloat (balance, 'lock');
+            const currencyId = this.safeString(balance, 'coin');
+            const code = this.safeCurrencyCode(currencyId);
+            const account = this.account();
+            account['used'] = this.safeFloat(balance, 'lock');
+            account['free'] = this.safeFloat(balance, 'normal');
+            const total = this.safeFloat(balance, 'normal') + this.safeFloat(balance, 'lock');
             account['total'] = total;
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance(result);
     }
 
     async fetchTicker(symbol, params = {}) {
@@ -168,7 +168,7 @@ module.exports = class cointiger extends Exchange {
         };
         const ticker = await this.mapiPublic2GetDetail(request);
         const { data } = ticker;
-        const { 
+        const {
             trade_ticker_data: {
                 tick,
                 ts
@@ -186,7 +186,7 @@ module.exports = class cointiger extends Exchange {
         return {
             'symbol': symbol,
             'timestamp': ts,
-            'datetime': this.iso8601 (ts),
+            'datetime': this.iso8601(ts),
             'high': high,
             'low': low,
             'bid': undefined,
@@ -219,9 +219,9 @@ module.exports = class cointiger extends Exchange {
         return this.parseTrades(response.data.trade_data, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
-        let side = this.safeStringLower (trade, 'side');        
-        const id = this.safeString (trade, 'id');
+    parseTrade(trade, market = undefined) {
+        let side = this.safeStringLower(trade, 'side');
+        const id = this.safeString(trade, 'id');
         const timestamp = trade.ts;
         const datetime = trade.ds;
         const amount = trade.amount;
@@ -237,12 +237,12 @@ module.exports = class cointiger extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        
+
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'symbol': symbol,
             'order': id,
             'type': undefined,
@@ -255,53 +255,53 @@ module.exports = class cointiger extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        await this.loadMarkets();
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': this.marketId(symbol),
             'type': 'step0',
         };
-        const orderbook = await this.mapiPublic2GetDepth (request);
+        const orderbook = await this.mapiPublic2GetDepth(request);
         const timestamp = orderbook.data.depth_data.ts;
-        return this.parseOrderBook (orderbook.data.depth_data.tick, timestamp, 'buys', 'asks', 0, 1);
+        return this.parseOrderBook(orderbook.data.depth_data.tick, timestamp, 'buys', 'asks', 0, 1);
     }
 
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        this.checkRequiredCredentials ();
-        const market = this.market (symbol);
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets();
+        this.checkRequiredCredentials();
+        const market = this.market(symbol);
         const orderType = (type === 'limit') ? 1 : 2;
         const request = {
             'symbol': market['id'],
-            'side': side.toUpperCase (),
+            'side': side.toUpperCase(),
             'type': orderType,
-            'volume': this.amountToPrecision (symbol, amount),
+            'volume': this.amountToPrecision(symbol, amount),
             // 'capital_password': this.password, // obsolete since v2, https://github.com/ccxt/ccxt/issues/4815
         };
         if ((type === 'market') && (side === 'buy')) {
             if (price === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder requires price argument for market buy orders to calculate total cost according to exchange rules');
+                throw new InvalidOrder(this.id + ' createOrder requires price argument for market buy orders to calculate total cost according to exchange rules');
             }
-            request['volume'] = this.amountToPrecision (symbol, parseFloat (amount) * parseFloat (price));
+            request['volume'] = this.amountToPrecision(symbol, parseFloat(amount) * parseFloat(price));
         }
         if (type === 'limit') {
-            request['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision(symbol, price);
         } else {
             if (price === undefined) {
-                request['price'] = this.priceToPrecision (symbol, 0);
+                request['price'] = this.priceToPrecision(symbol, 0);
             } else {
-                request['price'] = this.priceToPrecision (symbol, price);
+                request['price'] = this.priceToPrecision(symbol, price);
             }
         }
-        const response = await this.apiV2PrivatePostOrder (this.extend (request, params));
-        const timestamp = this.milliseconds ();
+        const response = await this.apiV2PrivatePostOrder(this.extend(request, params));
+        const timestamp = this.milliseconds();
 
         return {
             'info': response,
-            'id': this.safeString (response['data'], 'order_id'),
+            'id': this.safeString(response['data'], 'order_id'),
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
             'status': undefined,
             'symbol': symbol,
@@ -317,7 +317,7 @@ module.exports = class cointiger extends Exchange {
         };
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus(status) {
         const statuses = {
             '0': 'open', // pending
             '1': 'open',
@@ -326,20 +326,20 @@ module.exports = class cointiger extends Exchange {
             '4': 'canceled',
             '6': 'error',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString(statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
-        const id = this.safeString (order, 'id');
-        let side = this.safeStringLower (order, 'side');
+    parseOrder(order, market = undefined) {
+        const id = this.safeString(order, 'id');
+        let side = this.safeStringLower(order, 'side');
         let type = undefined;
-        const orderType = this.safeString (order, 'type');
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const timestamp = this.safeInteger2 (order, 'created_at', 'ctime');
-        const lastTradeTimestamp = this.safeInteger2 (order, 'mtime', 'finished-at');
+        const orderType = this.safeString(order, 'type');
+        let status = this.parseOrderStatus(this.safeString(order, 'status'));
+        const timestamp = this.safeInteger2(order, 'created_at', 'ctime');
+        const lastTradeTimestamp = this.safeInteger2(order, 'mtime', 'finished-at');
         let symbol = undefined;
         if (market === undefined) {
-            const marketId = this.safeString (order, 'symbol');
+            const marketId = this.safeString(order, 'symbol');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             }
@@ -355,22 +355,22 @@ module.exports = class cointiger extends Exchange {
         let fee = undefined;
         let average = undefined;
         if (side !== undefined) {
-            amount = this.safeFloat (order['volume'], 'amount');
-            remaining = ('remain_volume' in order) ? this.safeFloat (order['remain_volume'], 'amount') : undefined;
-            filled = ('deal_volume' in order) ? this.safeFloat (order['deal_volume'], 'amount') : undefined;
-            price = ('price' in order) ? this.safeFloat (order['price'], 'amount') : undefined;
-            average = ('age_price' in order) ? this.safeFloat (order['age_price'], 'amount') : undefined;
+            amount = this.safeFloat(order['volume'], 'amount');
+            remaining = ('remain_volume' in order) ? this.safeFloat(order['remain_volume'], 'amount') : undefined;
+            filled = ('deal_volume' in order) ? this.safeFloat(order['deal_volume'], 'amount') : undefined;
+            price = ('price' in order) ? this.safeFloat(order['price'], 'amount') : undefined;
+            average = ('age_price' in order) ? this.safeFloat(order['age_price'], 'amount') : undefined;
         } else {
             if (orderType !== undefined) {
-                const parts = orderType.split ('-');
+                const parts = orderType.split('-');
                 side = parts[0];
                 type = parts[1];
-                cost = this.safeFloat (order, 'deal_money');
-                price = this.safeFloat (order, 'price');
-                average = this.safeFloat (order, 'avg_price');
-                amount = this.safeFloat2 (order, 'amount', 'volume');
-                filled = this.safeFloat (order, 'deal_volume');
-                const feeCost = this.safeFloat (order, 'fee');
+                cost = this.safeFloat(order, 'deal_money');
+                price = this.safeFloat(order, 'price');
+                average = this.safeFloat(order, 'avg_price');
+                amount = this.safeFloat2(order, 'amount', 'volume');
+                filled = this.safeFloat(order, 'deal_volume');
+                const feeCost = this.safeFloat(order, 'fee');
                 if (feeCost !== undefined) {
                     let feeCurrency = undefined;
                     if (market !== undefined) {
@@ -390,12 +390,12 @@ module.exports = class cointiger extends Exchange {
         if (amount !== undefined) {
             if (remaining !== undefined) {
                 if (filled === undefined) {
-                    filled = Math.max (0, amount - remaining);
+                    filled = Math.max(0, amount - remaining);
                 }
             } else if (filled !== undefined) {
                 cost = filled * price;
                 if (remaining === undefined) {
-                    remaining = Math.max (0, amount - filled);
+                    remaining = Math.max(0, amount - filled);
                 }
             }
         }
@@ -410,7 +410,7 @@ module.exports = class cointiger extends Exchange {
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
@@ -428,34 +428,34 @@ module.exports = class cointiger extends Exchange {
         return result;
     }
 
-    async cancelOrder (ids, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
+    async cancelOrder(ids, symbol = undefined, params = {}) {
+        await this.loadMarkets();
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+            throw new ArgumentsRequired(this.id + ' cancelOrder requires a symbol argument');
         }
-        const market = this.market (symbol);
+        const market = this.market(symbol);
         const marketId = market['id'];
         const orderIdList = {};
-        orderIdList[marketId] = typeof ids === 'string' ? [ ids ] : ids;
+        orderIdList[marketId] = typeof ids === 'string' ? [ids] : ids;
         const request = {
-            'orderIdList': this.json (orderIdList),
+            'orderIdList': this.json(orderIdList),
         };
-        const response = await this.apiV2PrivatePostOrderBatchCancel (this.extend (request, params));
+        const response = await this.apiV2PrivatePostOrderBatchCancel(this.extend(request, params));
         return {
             'info': response,
         };
     }
-    
-    async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
-        return await this.fetchOrdersByStatesV2 ('new,part_filled,filled,canceled,expired', symbol, since, limit, params);
+
+    async fetchOrders(symbol = undefined, since = undefined, limit = 100, params = {}) {
+        return await this.fetchOrdersByStatesV2('new,part_filled,filled,canceled,expired', symbol, since, limit, params);
     }
 
-    async fetchOrdersByStatesV2 (states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByStatesV2(states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+            throw new ArgumentsRequired(this.id + ' fetchOrders requires a symbol argument');
         }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
         if (limit === undefined) {
             limit = 50;
         }
@@ -474,41 +474,50 @@ module.exports = class cointiger extends Exchange {
                 'direct': 'next',
                 'size': limit > 100 ? 50 : limit,
             };
-            const response_call_1 = await this.apiV2PrivateGetOrderOrders (this.extend (request_call_1, params));
-            const lastOrderId = response_call_1.data[response_call_1.data.length - 1].id;
-            const request_call_2 = {
-                'symbol': market['id'],
-                'states': states,
-                'from': `${lastOrderId}`,
-                'direct': 'next',
-                'size': limit > 100 ? 50 : limit,
-            };
-            const response_call_2 = await this.apiV2PrivateGetOrderOrders (this.extend (request_call_2, params));
-            const mergedResponseData = [ ...response_call_1.data, ...response_call_2.data ];
-            return this.parseOrders (mergedResponseData, market, since, limit);
+            const response_call_1 = await this.apiV2PrivateGetOrderOrders(this.extend(request_call_1, params));
+            const lastOrderId = response_call_1.data.length > 0
+                ? response_call_1.data[response_call_1.data.length - 1].id
+                : '';
+            const request_call_2 = lastOrderId
+                ? {
+                    'symbol': market['id'],
+                    'states': states,
+                    'from': `${lastOrderId}`,
+                    'direct': 'next',
+                    'size': limit > 100 ? 50 : limit,
+                }
+                : {
+                    'symbol': market['id'],
+                    'states': states,
+                    'direct': 'next',
+                    'size': limit > 100 ? 50 : limit,
+                };
+            const response_call_2 = await this.apiV2PrivateGetOrderOrders(this.extend(request_call_2, params));
+            const mergedResponseData = [...response_call_1.data, ...response_call_2.data];
+            return this.parseOrders(mergedResponseData, market, since, limit);
         } else {
-            const response = await this.apiV2PrivateGetOrderOrders (this.extend (request, params));
-            return this.parseOrders (response['data'], market, since, limit);
+            const response = await this.apiV2PrivateGetOrderOrders(this.extend(request, params));
+            return this.parseOrders(response['data'], market, since, limit);
         }
-        
+
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrdersByStatesV2 ('new,part_filled', symbol, since, limit, params);
+    async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByStatesV2('new,part_filled', symbol, since, limit, params);
     }
 
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const week = 604800000; // milliseconds
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired(this.id + ' fetchMyTrades requires a symbol argument');
         }
         if (since === undefined) {
-            since = this.milliseconds () - week; // week ago
+            since = this.milliseconds() - week; // week ago
         }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const start = this.ymd (since);
-        const end = this.ymd (this.sum (since, week)); // one week
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const start = this.ymd(since);
+        const end = this.ymd(this.sum(since, week)); // one week
         if (limit === undefined) {
             limit = 1000;
         }
@@ -518,34 +527,34 @@ module.exports = class cointiger extends Exchange {
             'end-date': end,
             'size': limit,
         };
-        const response = await this.apiV2PrivateGetOrderMatchResults (this.extend (request, params));
-        return this.parseTrades (response['data'], market, since, limit);
+        const response = await this.apiV2PrivateGetOrderMatchResults(this.extend(request, params));
+        return this.parseTrades(response['data'], market, since, limit);
     }
 
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        this.checkRequiredCredentials ();
+        this.checkRequiredCredentials();
         let request = '/';
         request += path;
         if (api === 'tapiPrivate' || api === 'apiV2Private') {
-            const timestamp = this.milliseconds ().toString ();
-            const query = this.keysort (this.extend ({
+            const timestamp = this.milliseconds().toString();
+            const query = this.keysort(this.extend({
                 'time': timestamp,
             }, params));
-            const keys = Object.keys (query);
+            const keys = Object.keys(query);
             let auth = '';
             for (let i = 0; i < keys.length; i++) {
-                auth += keys[i] + query[keys[i]].toString ();
+                auth += keys[i] + query[keys[i]].toString();
             }
             auth += this.secret;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha512');
             const urlParams = method === 'POST' ? {} : query;
-            request += '?' + this.urlencode (this.keysort (this.extend ({
+            request += '?' + this.urlencode(this.keysort(this.extend({
                 'api_key': this.apiKey,
                 'time': timestamp,
             }, urlParams)));
             request += '&sign=' + signature;
             if (method === 'POST') {
-                body = this.urlencode (query);
+                body = this.urlencode(query);
                 headers = {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 };
