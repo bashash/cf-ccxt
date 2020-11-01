@@ -1390,7 +1390,7 @@ module.exports = class kraken extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds ();
+        return new Date() * 1000;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
