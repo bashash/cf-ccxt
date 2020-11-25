@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection } = require('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -28,6 +28,7 @@ module.exports = class coinfieldstage extends Exchange {
                 'fetchMyTrades': true,
                 'createOrder': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'fetchBalance': true,
             },
             'headers': {
@@ -99,19 +100,19 @@ module.exports = class coinfieldstage extends Exchange {
     async fetchBalance(params = {}) {
         await this.loadMarkets();
         const response = await this.privateGetWallets();
-        const balances = this.safeValue (response, 'wallets');
+        const balances = this.safeValue(response, 'wallets');
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'balance') + this.safeFloat (balance, 'locked');
-            account['free'] = this.safeFloat (balance, 'balance');
-            account['used'] = this.safeFloat (balance, 'locked');
+            const currencyId = this.safeString(balance, 'currency');
+            const code = this.safeCurrencyCode(currencyId);
+            const account = this.account();
+            account['total'] = this.safeFloat(balance, 'balance') + this.safeFloat(balance, 'locked');
+            account['free'] = this.safeFloat(balance, 'balance');
+            account['used'] = this.safeFloat(balance, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance(result);
     }
 
     async fetchTicker(symbol, params = {}) {
@@ -182,9 +183,9 @@ module.exports = class coinfieldstage extends Exchange {
     //     return result;
     // }
 
-    parseTrade (trade, market = undefined) {
-        const id = this.safeString (trade, 'id');
-        const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
+    parseTrade(trade, market = undefined) {
+        const id = this.safeString(trade, 'id');
+        const timestamp = this.parse8601(this.safeString(trade, 'timestamp'));
         const datetime = this.iso8601(timestamp);
         const price = this.safeFloat(trade, 'price');
         const amount = this.safeFloat(trade, 'volume');
@@ -211,22 +212,22 @@ module.exports = class coinfieldstage extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        await this.loadMarkets();
         const request = {
-            'market': this.marketId (symbol),
+            'market': this.marketId(symbol),
             // 'type': 'step0',
         };
-        const orderbook = await this.publicGetOrderbookMarket (request);
+        const orderbook = await this.publicGetOrderbookMarket(request);
         const { timestamp } = orderbook;
-        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'volume');
+        return this.parseOrderBook(orderbook, timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
+    async fetchOrders(symbol = undefined, since = undefined, limit = 50, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+            throw new ArgumentsRequired(this.id + ' fetchOrders requires a symbol argument');
         }
-        await this.loadMarkets ();
+        await this.loadMarkets();
         const market = this.market(symbol);
         const marketName = this.marketId(symbol)
         const request = {
@@ -234,14 +235,14 @@ module.exports = class coinfieldstage extends Exchange {
             'limit': limit ? limit : 50,
         }
         const response = await this.privateGetOrdersMarket(this.extend(request, params));
-        return this.parseOrders (response.orders, market, since, limit);
+        return this.parseOrders(response.orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
+    async fetchOpenOrders(symbol = undefined, since = undefined, limit = 50, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+            throw new ArgumentsRequired(this.id + ' fetchOrders requires a symbol argument');
         }
-        await this.loadMarkets ();
+        await this.loadMarkets();
         const market = this.market(symbol);
         const marketName = this.marketId(symbol);
         const request = {
@@ -250,25 +251,25 @@ module.exports = class coinfieldstage extends Exchange {
             'state': 'open,pending',
         }
         const response = await this.privateGetOrdersMarket(this.extend(request, params));
-        return this.parseOrders (response.orders, market, since, limit);
+        return this.parseOrders(response.orders, market, since, limit);
     }
 
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = Object.values (orders).map (order => this.extend (this.parseOrder (order, market), params))
-        result = this.sortBy (result, 'timestamp')
+    parseOrders(orders, market = undefined, since = undefined, limit = undefined, params = {}) {
+        let result = Object.values(orders).map(order => this.extend(this.parseOrder(order, market), params))
+        result = this.sortBy(result, 'timestamp')
         return result;
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder(order, market = undefined) {
         const {
             id,
             side,
             strategy,
             state,
         } = order;
-        const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        const timestamp = this.parse8601(this.safeString(order, 'created_at'));
         const datetime = this.iso8601(timestamp);
-        const symbol = this.safeString(order, 'market');  
+        const symbol = this.safeString(order, 'market');
         const price = this.safeFloat(order, 'price');
         const average = this.safeFloat(order, 'avg_price');
         const amount = this.safeFloat(order, 'volume');
@@ -295,34 +296,34 @@ module.exports = class coinfieldstage extends Exchange {
         }
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a `symbol` argument');
+            throw new ArgumentsRequired(this.id + ' fetchMyTrades requires a `symbol` argument');
         }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
         const request = {
             'market': market['id'],
             'limit': limit ? limit : 50,
             'since': since ? since : '',
         };
 
-        const response = await this.privateGetTradeHistoryMarket (this.extend (request, params));
-        return this.parseMyTrades (response.trades, symbol, since, limit);
+        const response = await this.privateGetTradeHistoryMarket(this.extend(request, params));
+        return this.parseMyTrades(response.trades, symbol, since, limit);
     }
 
-    parseMyTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = Object.values (trades || []).map ((trade) => this.extend (this.parseMyTrade (trade, market), params))
-        result = this.sortBy (result, 'timestamp')
+    parseMyTrades(trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+        let result = Object.values(trades || []).map((trade) => this.extend(this.parseMyTrade(trade, market), params))
+        result = this.sortBy(result, 'timestamp')
         return result;
     }
 
-    parseMyTrade (trade, market = undefined) {
+    parseMyTrade(trade, market = undefined) {
         const {
             id,
             side,
         } = trade;
-        const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
+        const timestamp = this.parse8601(this.safeString(trade, 'timestamp'));
         const datetime = this.iso8601(timestamp);
         const symbol = market;
         const orderId = this.safeString(trade, 'order_id');
@@ -346,9 +347,9 @@ module.exports = class coinfieldstage extends Exchange {
         };
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = side === 'bid' && type === 'market' 
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = side === 'bid' && type === 'market'
             ? {
                 'market': this.marketId(symbol),
                 'type': side,
@@ -371,21 +372,30 @@ module.exports = class coinfieldstage extends Exchange {
         }
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder(id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` argument');
+            throw new ArgumentsRequired(this.id + ' cancelOrder() requires a `symbol` argument');
         }
-        await this.loadMarkets ();
-        const request = id === 'all' 
-            ? { 'market': this.marketId (symbol) }
+        await this.loadMarkets();
+        const request = id === 'all'
+            ? { 'market': this.marketId(symbol) }
             : { 'id': id };
-        
-        return id === 'all' 
-            ? await this.privateDeleteOrdersMarket (this.extend (request, params))
-            : await this.privateDeleteOrderId (this.extend (request, params));
+
+        return id === 'all'
+            ? await this.privateDeleteOrdersMarket(this.extend(request, params))
+            : await this.privateDeleteOrderId(this.extend(request, params));
     }
 
-    createBody (params) {
+    async cancelOrders(symbol, side, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired('cancelOrders() requires a `symbol` argument');
+        }
+        await this.loadMarkets();
+        const request = { 'market': this.marketId(symbol), 'side': side };
+        return this.privateDeleteOrdersMarket(this.extend(request, params))
+    }
+
+    createBody(params) {
         const {
             market,
             type,
@@ -412,7 +422,7 @@ module.exports = class coinfieldstage extends Exchange {
         }
         let body;
         if (strategy === 'market') {
-            body = type === 'bid' 
+            body = type === 'bid'
                 ? {
                     'market': market,
                     'type': type,
@@ -426,7 +436,7 @@ module.exports = class coinfieldstage extends Exchange {
                     'volume': volume,
                 }
         } else if (strategy === 'limit') {
-            body = timeInForce 
+            body = timeInForce
                 ? {
                     'market': market,
                     'type': type,
@@ -443,7 +453,7 @@ module.exports = class coinfieldstage extends Exchange {
                     'price': price,
                     'expiry': expiry,
                     'immediate': immediate,
-                }                        
+                }
         } else if ('stop_limit') {
             body = timeInForce
                 ? {
@@ -471,7 +481,7 @@ module.exports = class coinfieldstage extends Exchange {
 
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/';
-        request += this.implodeParams (path, params);
+        request += this.implodeParams(path, params);
         if (api === 'private') {
             if (method === 'POST') {
                 headers = {
@@ -479,7 +489,7 @@ module.exports = class coinfieldstage extends Exchange {
                     'Authorization': 'Bearer ' + this.apiKey,
                 }
                 if (Object.values(params).length) {
-                    body = this.json(this.createBody(params));                    
+                    body = this.json(this.createBody(params));
                 }
             } else if (method === 'DELETE' && path === 'orders/{market}') {
                 headers = {
@@ -487,7 +497,7 @@ module.exports = class coinfieldstage extends Exchange {
                 }
                 const { side } = params;
                 request += `?side=${side}`
-            } else  if (path === 'orders/{market}') {
+            } else if (path === 'orders/{market}') {
                 if (Object.values(params).length) {
                     const { limit, state } = params;
                     request += state ? `?limit=${limit}&state=${state}` : `?limit=${limit}`;
