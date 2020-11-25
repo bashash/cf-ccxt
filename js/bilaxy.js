@@ -36,7 +36,7 @@ module.exports = class bilaxy extends Exchange {
                 'logo': 'https://avatars2.githubusercontent.com/u/58157269?s=400&u=0c535058316c0f03287519950ef5f2d61ce27093&v=4',
                 'api': {
                     "public": 'https://newapi.bilaxy.com/v1',
-                    "private": 'https://api.bilaxy.com/v1',
+                    "private": 'https://api.bilaxy.com/v1',//'https://newapi.bilaxy.com/v1'
                 },
                 'www': 'https://bilaxy.com/',
                 'doc': 'https://github.com/bilaxy-exchange/bilaxy-api-docs',
@@ -52,9 +52,9 @@ module.exports = class bilaxy extends Exchange {
                 },
                 'private': {
                     'get': [
-                        'balances',
-                        'trade_list',
-                        'trade_view',
+                        'balances',//accounts/balances
+                        'trade_list',//open orders => accounts/orders/opened, all orders => accounts/orders
+                        'trade_view',//accounts/trades
                     ],
                     'post': [
                         'trade',
