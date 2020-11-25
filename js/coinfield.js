@@ -386,7 +386,7 @@ module.exports = class coinfield extends Exchange {
       : await this.privateDeleteOrderId(this.extend(request, params));
   }
 
-  async cacelOrders(symbol = undefined, params = {}) {
+  async cancelOrders(symbol = undefined, params = {}) {
     if (symbol === undefined) {
       throw new ArgumentsRequired('cancelOrders() requires a `symbol` argument');
     }
