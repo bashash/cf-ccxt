@@ -386,12 +386,12 @@ module.exports = class coinfieldstage extends Exchange {
             : await this.privateDeleteOrderId(this.extend(request, params));
     }
 
-    async cancelOrders(symbol = undefined, params = {}) {
+    async cancelOrders(symbol, side, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired('cancelOrders() requires a `symbol` argument');
         }
         await this.loadMarkets();
-        const request = { 'market': this.marketId(symbol) };
+        const request = { 'market': this.marketId(symbol), 'side': side };
         return this.privateDeleteOrdersMarket(this.extend(request, params))
     }
 
