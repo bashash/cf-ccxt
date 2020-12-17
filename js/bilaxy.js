@@ -3,8 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
-const CryptoJS = require ('./static_dependencies/crypto-js/crypto-js');
+const { ExchangeError, ArgumentsRequired, BadRequest, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection } = require('./base/errors');
+const CryptoJS = require('./static_dependencies/crypto-js/crypto-js');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bilaxy extends Exchange {
@@ -87,16 +87,16 @@ module.exports = class bilaxy extends Exchange {
             let market = markets[i];
             let id = market.pair_id;
             let symbol = `${market.base}/${market.quote}`;
-            let base = this.safeString (market, 'base');
-            let quote = this.safeString (market, 'quote');
-            let price_precision = this.safeString (market, 'price_precision');
-            let amount_precision = this.safeString (market, 'amount_precision');
-            let min_amount = this.safeString (market, 'min_amount');
-            let max_amount = this.safeString (market, 'max_amount');
-            let min_total = this.safeString (market, 'min_total');
-            let max_total = this.safeString (market, 'max_total');
+            let base = this.safeString(market, 'base');
+            let quote = this.safeString(market, 'quote');
+            let price_precision = this.safeString(market, 'price_precision');
+            let amount_precision = this.safeString(market, 'amount_precision');
+            let min_amount = this.safeString(market, 'min_amount');
+            let max_amount = this.safeString(market, 'max_amount');
+            let min_total = this.safeString(market, 'min_total');
+            let max_total = this.safeString(market, 'max_total');
             const { trade_enabled, closed } = market;
-            
+
             result.push({
                 'id': id,
                 'symbol': symbol,
@@ -116,7 +116,7 @@ module.exports = class bilaxy extends Exchange {
         return result;
     }
 
-    async fetchBalance () {
+    async fetchBalance() {
         await this.loadMarkets();
         // const response = await this.privateGetBalances();
         // {
@@ -141,51 +141,51 @@ module.exports = class bilaxy extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const currency = balances[i][0];
             const balance = balances[i][1];
-            const code = this.safeCurrencyCode (currency);
-            const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'used');
-            const total = this.safeFloat (balance, 'available') + this.safeFloat (balance, 'used');
+            const code = this.safeCurrencyCode(currency);
+            const account = this.account();
+            account['free'] = this.safeFloat(balance, 'available');
+            account['used'] = this.safeFloat(balance, 'used');
+            const total = this.safeFloat(balance, 'available') + this.safeFloat(balance, 'used');
             account['total'] = total;
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance(result);
     }
 
-    async fetchTickers (symbol = undefined, params = {}) {
+    async fetchTickers(symbol = undefined, params = {}) {
         await this.loadMarkets();
         const response = await this.publicGetTicker24hr();
         const tickers = Object.values(response);
         const symbols = Object.keys(response);
-   
+
         return this.parseTickers(tickers, symbols);
     }
 
-    parseTickers (tickers, symbols = undefined) {
+    parseTickers(tickers, symbols = undefined) {
         const result = [];
         for (let i = 0; i < tickers.length; i++) {
-            result.push(this.parseTicker (tickers[i], symbols[i]));
+            result.push(this.parseTicker(tickers[i], symbols[i]));
         }
         return result;
     }
 
-    async fetchTicker (symbol = undefined, params = {}) {
+    async fetchTicker(symbol = undefined, params = {}) {
         await this.loadMarkets();
         const response = await this.publicGetTicker24hr();
         const ticker = response[symbol.replace('/', '_')];
         return this.parseTicker(ticker, symbol);
     }
 
-    parseTicker (ticker, symbol = undefined) {
+    parseTicker(ticker, symbol = undefined) {
         let timestamp = new Date().getTime();
-        let datestamp = this.iso8601 (timestamp);
-        let high = this.safeString (ticker, 'height');
-        let open = this.safeString (ticker, 'open');
-        let low = this.safeString (ticker, 'low');
-        let close = this.safeString (ticker, 'close');
-        let baseVolume = this.safeString (ticker, 'base_volume');
-        let quoteVolume = this.safeString (ticker, 'quote_volume');
-        let change = this.safeString (ticker, 'price_change');
+        let datestamp = this.iso8601(timestamp);
+        let high = this.safeString(ticker, 'height');
+        let open = this.safeString(ticker, 'open');
+        let low = this.safeString(ticker, 'low');
+        let close = this.safeString(ticker, 'close');
+        let baseVolume = this.safeString(ticker, 'base_volume');
+        let quoteVolume = this.safeString(ticker, 'quote_volume');
+        let change = this.safeString(ticker, 'price_change');
 
         return {
             'symbol': symbol.replace('_', '/'),
@@ -229,14 +229,14 @@ module.exports = class bilaxy extends Exchange {
         return this.parseTrades(result, symbol, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
-        const id = this.safeString (trade, 'id');
+    parseTrade(trade, market = undefined) {
+        const id = this.safeString(trade, 'id');
         const timestamp = trade.ts;
         const datetime = this.iso8601(timestamp);
-        const amount = this.safeString (trade, 'amount');
-        const price = this.safeString (trade, 'price');
-        const cost = this.safeString (trade, 'total');
-        const side = this.safeString (trade, 'direction');
+        const amount = this.safeString(trade, 'amount');
+        const price = this.safeString(trade, 'price');
+        const cost = this.safeString(trade, 'total');
+        const side = this.safeString(trade, 'direction');
 
         return {
             'id': id,
@@ -255,21 +255,21 @@ module.exports = class bilaxy extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        await this.loadMarkets();
         const request = {
             'pair': symbol.replace('/', '_'),
         };
-        const orderbook = await this.publicGetOrderbook (request);
+        const orderbook = await this.publicGetOrderbook(request);
         const { timestamp } = orderbook;
-        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 0, 1);
+        return this.parseOrderBook(orderbook, timestamp, 'bids', 'asks', 0, 1);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+    async fetchOrders(symbol = undefined, since = undefined, limit = 100, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+            throw new ArgumentsRequired(this.id + ' fetchOrders requires a symbol argument');
         }
-        await this.loadMarkets ();
+        await this.loadMarkets();
         const market = this.market(symbol);
         const id = this.marketId(symbol);
         // const request = {
@@ -288,14 +288,14 @@ module.exports = class bilaxy extends Exchange {
         };
         // console.log('request', request)
         const response = await this.privateGetAccountsOrders(this.extend(request, params));
-        return this.parseOrders (response, market, since, limit);
+        return this.parseOrders(response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+    async fetchOpenOrders(symbol = undefined, since = undefined, limit = 100, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+            throw new ArgumentsRequired(this.id + ' fetchOrders requires a symbol argument');
         }
-        await this.loadMarkets ();
+        await this.loadMarkets();
         const market = this.market(symbol);
         const id = this.marketId(symbol);
         const pair = market.base + '_' + market.quote;
@@ -319,16 +319,16 @@ module.exports = class bilaxy extends Exchange {
         //     "filled_amount": 0,
         //     "state": "non-filled"
         //   }, .. ]
-        return this.parseOrders (response, market, since, limit);
+        return this.parseOrders(response, market, since, limit);
     }
 
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = Object.values (orders).map (order => this.extend (this.parseOrder (order, market), params))
-        result = this.sortBy (result, 'timestamp')
+    parseOrders(orders, market = undefined, since = undefined, limit = undefined, params = {}) {
+        let result = Object.values(orders).map(order => this.extend(this.parseOrder(order, market), params))
+        result = this.sortBy(result, 'timestamp')
         return result;
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus(status) {
         const statuses = {
             1: 'open',
             2: 'pending',
@@ -338,7 +338,7 @@ module.exports = class bilaxy extends Exchange {
         return statuses[status];
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder(order, market = undefined) {
         // {
         //     "id": 4141252868,
         //     "price": 7012.5,
@@ -352,7 +352,7 @@ module.exports = class bilaxy extends Exchange {
         //     "state": "canceled"
         //   },
         const { id } = order;
-        const timestamp = new Date(this.safeString (order, 'created_at')).getTime();
+        const timestamp = new Date(this.safeString(order, 'created_at')).getTime();
         const datetime = this.iso8601(timestamp);
         const symbol = this.safeString(market, 'symbol');
         // const status = this.parseOrderStatus(order.state);
@@ -384,12 +384,12 @@ module.exports = class bilaxy extends Exchange {
         }
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a `symbol` argument');
+            throw new ArgumentsRequired(this.id + ' fetchMyTrades requires a `symbol` argument');
         }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
         // console.log("market", market)
         const pair = market.base + '_' + market.quote;
         const request = {
@@ -399,17 +399,17 @@ module.exports = class bilaxy extends Exchange {
         };
 
         // const response = await this.privateGetTradeView (this.extend (request, params));
-        const response = await this.privateGetAccountsTrades (this.extend (request, params));
-        return this.parseMyTrades (response, symbol, since, limit);
+        const response = await this.privateGetAccountsTrades(this.extend(request, params));
+        return this.parseMyTrades(response, symbol, since, limit);
     }
 
-    parseMyTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = Object.values (trades || []).map ((trade) => this.extend (this.parseMyTrade (trade, market), params))
-        result = this.sortBy (result, 'timestamp')
+    parseMyTrades(trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+        let result = Object.values(trades || []).map((trade) => this.extend(this.parseMyTrade(trade, market), params))
+        result = this.sortBy(result, 'timestamp')
         return result;
     }
 
-    parseMyTrade (trade, market = undefined) {
+    parseMyTrade(trade, market = undefined) {
         // {
         //     "id": 716797287,
         //     "order_id": 4141266876,
@@ -424,7 +424,7 @@ module.exports = class bilaxy extends Exchange {
         //     "fees_currency": "BIA"
         //   },
         const id = this.safeString(trade, 'id');
-        const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
+        const timestamp = this.parse8601(this.safeString(trade, 'created_at'));
         const datetime = this.iso8601(timestamp);
         const symbol = this.safeString(market, 'symbol');
         const orderId = this.safeString(trade, 'id');
@@ -452,8 +452,8 @@ module.exports = class bilaxy extends Exchange {
         };
     }
 
-    async createOrder (symbol, type = 'limit', side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
+    async createOrder(symbol, type = 'limit', side, amount, price = undefined, params = {}) {
+        await this.loadMarkets();
         const id = this.marketId(symbol);
         const request = {
             'symbol': id,
@@ -465,7 +465,7 @@ module.exports = class bilaxy extends Exchange {
         const response = await this.oldprivatePostTrade(this.extend(request, params));
         // const { data } = response;
         return {
-            'id': response?.id,
+            'id': this.safeValue(response, 'id'),
             'info': response,
         }
     }
@@ -480,10 +480,10 @@ module.exports = class bilaxy extends Exchange {
             'symbol': symbolId,
             'id': id,
         };
-        return await this.oldprivatePostCancelTrade (this.extend (request, params));
+        return await this.oldprivatePostCancelTrade(this.extend(request, params));
     }
 
-    sha1 (request, secret, hash = 'sha256', digest = 'hex') {
+    sha1(request, secret, hash = 'sha256', digest = 'hex') {
         const result = CryptoJS[hash.toUpperCase()](request, secret)
         if (digest) {
             const encoding = (digest === 'binary') ? 'Latin1' : digest.toUpperCase()
@@ -492,27 +492,27 @@ module.exports = class bilaxy extends Exchange {
         return result
     }
 
-    createSignatureOldApi (input) {
+    createSignatureOldApi(input) {
         const params = [];
         for (let i in input) {
-            params.push(`${i}=` + input[i]);   
+            params.push(`${i}=` + input[i]);
         };
         const message = params.sort().join('&');
-        const signature = this.sha1 (this.encode (message), this.encode (this.secret), 'sha1');
+        const signature = this.sha1(this.encode(message), this.encode(this.secret), 'sha1');
         return signature;
     }
 
-    createSignature (params) {
-        const query = [];        
+    createSignature(params) {
+        const query = [];
         for (let i in params) {
             query.push(`${i}=` + params[i]);
         };
         const queryString = query.sort().join('&');
-        const signature = this.hmac (this.encode (queryString), this.encode (this.secret), 'sha256', 'hex');
+        const signature = this.hmac(this.encode(queryString), this.encode(this.secret), 'sha256', 'hex');
         return signature;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/';
         request += path;
 
@@ -521,13 +521,13 @@ module.exports = class bilaxy extends Exchange {
             // request += '?' + this.urlencode ({ ...params, key: this.apiKey, sign: signature });
             const timestamp = new Date().getTime();
             const signature = this.createSignature({ ...params, apikey: this.apiKey, timestamp: timestamp });
-            request += '?' + this.urlencode ({ ...params, apikey: this.apiKey, signature: signature, timestamp: timestamp });
+            request += '?' + this.urlencode({ ...params, apikey: this.apiKey, signature: signature, timestamp: timestamp });
         } else if (api === 'oldprivate') {
             const signature = this.createSignatureOldApi({ ...params, key: this.apiKey, secret: this.secret });
-            request += '?' + this.urlencode ({ ...params, key: this.apiKey, sign: signature });
+            request += '?' + this.urlencode({ ...params, key: this.apiKey, sign: signature });
         } else {
-            if (Object.keys (params).length) {
-                request += '?' + this.urlencode (params);
+            if (Object.keys(params).length) {
+                request += '?' + this.urlencode(params);
             }
         }
 
