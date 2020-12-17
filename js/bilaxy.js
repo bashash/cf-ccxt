@@ -470,11 +470,11 @@ module.exports = class bilaxy extends Exchange {
         }
     }
 
-    async cancelOrder(id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol, params = {}) {
         // if (symbol === undefined) {
         //     throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` argument');
         // }
-        await this.loadMarkets();
+        await this.loadMarkets ();
         const symbolId = this.marketId(symbol);
         const request = {
             'symbol': symbolId,
