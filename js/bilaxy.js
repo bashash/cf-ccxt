@@ -354,7 +354,7 @@ module.exports = class bilaxy extends Exchange {
         const { id } = order;
         const timestamp = new Date(this.safeString (order, 'created_at')).getTime();
         const datetime = this.iso8601(timestamp);
-        const symbol = market;
+        const symbol = this.safeString(market, 'symbol');
         // const status = this.parseOrderStatus(order.state);
         const status = this.safeString(order, 'state');
         const price = this.safeFloat(order, 'price');
@@ -426,7 +426,7 @@ module.exports = class bilaxy extends Exchange {
         const id = this.safeString(trade, 'id');
         const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         const datetime = this.iso8601(timestamp);
-        const symbol = market;
+        const symbol = this.safeString(market, 'symbol');
         const orderId = this.safeString(trade, 'id');
         const price = this.safeFloat(trade, 'price');
         const amount = this.safeFloat(trade, 'amount');
@@ -463,19 +463,21 @@ module.exports = class bilaxy extends Exchange {
         }
 
         const response = await this.oldprivatePostTrade(this.extend(request, params));
-        const { data } = response;
+        // const { data } = response;
         return {
-            'id': data,
+            'id': response?.id,
             'info': response,
         }
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol, params = {}) {
         // if (symbol === undefined) {
         //     throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` argument');
         // }
         await this.loadMarkets ();
+        const symbolId = this.marketId(symbol);
         const request = {
+            'symbol': symbolId,
             'id': id,
         };
         return await this.oldprivatePostCancelTrade (this.extend (request, params));
