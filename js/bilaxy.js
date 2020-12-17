@@ -521,7 +521,7 @@ module.exports = class bilaxy extends Exchange {
             const signature = this.createSignature({ ...params, apikey: this.apiKey, timestamp: timestamp });
             request += '?' + this.urlencode ({ ...params, apikey: this.apiKey, signature: signature, timestamp: timestamp });
         } else if (api === 'oldprivate') {
-            const signature = this.createSignature({ ...params, key: this.apiKey, secret: this.secret });
+            const signature = this.createSignatureOldApi({ ...params, key: this.apiKey, secret: this.secret });
             request += '?' + this.urlencode ({ ...params, key: this.apiKey, sign: signature });
         } else {
             if (Object.keys (params).length) {
