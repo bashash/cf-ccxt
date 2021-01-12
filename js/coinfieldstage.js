@@ -161,7 +161,7 @@ module.exports = class coinfieldstage extends Exchange {
         const market = this.marketId(symbol);
         const request = {
             'market': market,
-            // 'limit': limit ? limit : '',
+            'limit': limit ? limit : 50,
             // 'symbol': market['id'],
         };
         const response = await this.publicGetTradesMarket(request);
@@ -216,6 +216,7 @@ module.exports = class coinfieldstage extends Exchange {
         await this.loadMarkets();
         const request = {
             'market': this.marketId(symbol),
+            'limit': limit ? limit : 50,
             // 'type': 'step0',
         };
         const orderbook = await this.publicGetOrderbookMarket(request);
@@ -481,46 +482,32 @@ module.exports = class coinfieldstage extends Exchange {
 
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/';
-        request += this.implodeParams(path, params);
+        request += this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
+
         if (api === 'private') {
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + this.apiKey,
+            }
             if (method === 'POST') {
-                headers = {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + this.apiKey,
-                }
                 if (Object.values(params).length) {
-                    body = this.json(this.createBody(params));
-                }
-            } else if (method === 'DELETE' && path === 'orders/{market}') {
-                headers = {
-                    'Authorization': 'Bearer ' + this.apiKey,
-                }
-                const { side } = params;
-                request += `?side=${side}`
-            } else if (path === 'orders/{market}') {
-                if (Object.values(params).length) {
-                    const { limit, state } = params;
-                    request += state ? `?limit=${limit}&state=${state}` : `?limit=${limit}`;
-                }
-                headers = {
-                    'Authorization': 'Bearer ' + this.apiKey,
-                }
-            } else if (path === 'trade-history/{market}') {
-                if (Object.values(params).length) {
-                    const { limit, since } = params;
-                    request += since ? `?limit=${limit}&from=${Number(since)}` : `?limit=${limit}`;
-                }
-                headers = {
-                    'Authorization': 'Bearer ' + this.apiKey,
+                    body = this.json(this.createBody(params));                    
                 }
             } else {
-                headers = {
-                    'Authorization': 'Bearer ' + this.apiKey,
+                if (Object.keys (query).length) {
+                    request += '?' + this.urlencode (query);
+                }
+            }
+        } else {
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    request += '?' + this.urlencode (query);
                 }
             }
         }
+
         const url = this.urls['api'] + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-
 }
