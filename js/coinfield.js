@@ -110,7 +110,7 @@ module.exports = class coinfield extends Exchange {
       account['total'] = this.safeFloat(balance, 'balance') + this.safeFloat(balance, 'locked');
       account['free'] = this.safeFloat(balance, 'balance');
       account['used'] = this.safeFloat(balance, 'locked');
-      result[code] = account;
+      result[code.toUpperCase()] = account;
     }
     return this.parseBalance(result);
   }
@@ -185,11 +185,12 @@ module.exports = class coinfield extends Exchange {
 
   parseTrade(trade, market = undefined) {
     const id = this.safeString(trade, 'id');
-    const timestamp = this.parse8601(this.safeString(trade, 'timestamp'));
+    const timestamp = this.parse8601(this.safeString(trade, 'executed_at'));
     const datetime = this.iso8601(timestamp);
     const price = this.safeFloat(trade, 'price');
     const amount = this.safeFloat(trade, 'volume');
     let cost = undefined;
+
     if (amount !== undefined) {
       if (price !== undefined) {
         cost = price * amount;
@@ -320,26 +321,30 @@ module.exports = class coinfield extends Exchange {
   }
 
   parseMyTrade(trade, market = undefined) {
-    const {
-      id,
-      side,
-    } = trade;
-    const timestamp = this.parse8601(this.safeString(trade, 'timestamp'));
+    const id = this.safeString(trade, 'id');
+    const timestamp = this.parse8601(this.safeString(trade, 'executed_at'));
     const datetime = this.iso8601(timestamp);
     const symbol = market;
-    const orderId = this.safeString(trade, 'order_id');
     const price = this.safeFloat(trade, 'price');
     const amount = this.safeFloat(trade, 'volume');
-    const cost = this.safeFloat(trade, 'total_value');
+    const cost = this.safeFloat(trade, 'funds');
+    const ask_behavior = this.safeString(trade, 'ask_behavior');
+    const bid_behavior = this.safeString(trade, 'bid_behavior');
+    const takerOrMaker = ask_behavior
+      ? ask_behavior
+      : bid_behavior
+        ? bid_behavior
+        : undefined;
+
     return {
       'id': id,
       'timestamp': timestamp,
       'datetime': datetime,
       'symbol': symbol,
-      'order': orderId,
+      'order': id,
       'type': undefined,
-      'side': side,
-      'takerOrMaker': undefined,
+      'side': undefined,
+      'takerOrMaker': takerOrMaker,
       'price': price,
       'amount': amount,
       'cost': cost,
