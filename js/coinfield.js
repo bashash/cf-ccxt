@@ -265,7 +265,8 @@ module.exports = class coinfield extends Exchange {
   parseOrder(order, market = undefined) {
     const {
       id,
-      side,
+      // side,
+      type,
       strategy,
       state,
     } = order;
@@ -273,11 +274,11 @@ module.exports = class coinfield extends Exchange {
     const datetime = this.iso8601(timestamp);
     const symbol = this.safeString(order, 'market');
     const price = this.safeFloat(order, 'price');
-    const average = this.safeFloat(order, 'avg_price');
-    const amount = this.safeFloat(order, 'volume');
-    const cost = Number(order.price) * Number(order.volume);
-    const remaining = this.safeFloat(order, 'remaining_volume');
-    const filled = this.safeFloat(order, 'executed_volume');
+    const average = this.safeFloat(order, 'average_execution_price');
+    const amount = this.safeFloat(order, 'volume_initial');
+    const cost = Number(order.price) * Number(order.volume_initial);
+    const remaining = this.safeFloat(order, 'volume_remaining');
+    const filled = this.safeFloat(order, 'volume_executed');
     return {
       'id': id,
       'timestamp': timestamp,
@@ -286,7 +287,7 @@ module.exports = class coinfield extends Exchange {
       'status': state,
       'symbol': symbol,
       'type': strategy,
-      'side': side,
+      'side': type,
       'price': price,
       'average': average,
       'cost': cost,
