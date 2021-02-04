@@ -54,6 +54,7 @@ module.exports = class coinfieldstage extends Exchange {
                         'orders/{market}',
                         'trade-history/{market}',
                         'wallets',
+                        'account',
                     ],
                     'post': [
                         'order'
@@ -65,6 +66,11 @@ module.exports = class coinfieldstage extends Exchange {
                 },
             },
         });
+    }
+
+    async fetchAccount() {
+        const response = await this.privateGetAccount();
+        return response ? response.account : {};
     }
 
     async fetchMarkets() {
@@ -311,17 +317,19 @@ module.exports = class coinfieldstage extends Exchange {
             'since': since ? since : '',
         };
 
+        const account = await this.fetchAccount();
+        const uid = this.safeString(account, 'uid');
         const response = await this.privateGetTradeHistoryMarket(this.extend(request, params));
-        return this.parseMyTrades(response.trades, symbol, since, limit);
+        return this.parseMyTrades(response.trades, symbol, since, limit, uid);
     }
 
-    parseMyTrades(trades, market = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = Object.values(trades || []).map((trade) => this.extend(this.parseMyTrade(trade, market), params))
+    parseMyTrades(trades, market = undefined, since = undefined, limit = undefined, uid, params = {}) {
+        let result = Object.values(trades || []).map((trade) => this.extend(this.parseMyTrade(trade, market, uid), params))
         result = this.sortBy(result, 'timestamp')
         return result;
     }
 
-    parseMyTrade(trade, market = undefined) {
+    parseMyTrade(trade, market = undefined, uid) {        
         const id = this.safeString(trade, 'id');
         const timestamp = this.parse8601(this.safeString(trade, 'executed_at'));
         const datetime = this.iso8601(timestamp);
@@ -331,11 +339,10 @@ module.exports = class coinfieldstage extends Exchange {
         const cost = this.safeFloat(trade, 'funds');
         const ask_behavior = this.safeString(trade, 'ask_behavior');
         const bid_behavior = this.safeString(trade, 'bid_behavior');
-        const takerOrMaker = ask_behavior
-            ? ask_behavior
-            : bid_behavior
-                ? bid_behavior
-                : undefined;
+        const buyer_id = this.safeString(trade, "buyer_id");
+        const seller_id = this.safeString(trade, "seller_id");
+        const side = seller_id === uid ? "ask" : "bid";
+        const takerOrMaker = side === "ask" ? ask_behavior : bid_behavior;
 
         return {
             'id': id,
@@ -344,7 +351,7 @@ module.exports = class coinfieldstage extends Exchange {
             'symbol': symbol,
             'order': id,
             'type': undefined,
-            'side': undefined,
+            'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
