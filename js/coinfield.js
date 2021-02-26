@@ -220,15 +220,31 @@ module.exports = class coinfield extends Exchange {
   }
 
   async fetchOrderBook(symbol, limit = undefined, params = {}) {
-    await this.loadMarkets();
+        await this.loadMarkets();
     const request = {
       'market': this.marketId(symbol),
       'limit': limit ? limit : 50,
-      // 'type': 'step0',
     };
-    const orderbook = await this.publicGetOrderbookMarket(request);
+    let orderbook = await this.publicGetOrderbookMarket(request);
     const { timestamp } = orderbook;
-    return this.parseOrderBook(orderbook, timestamp, 'bids', 'asks', 'price', 'volume');
+    const pba =  (bidask, priceKey = 0, amountKey = 1)=> {
+      const price = parseFloat (bidask[priceKey])
+      const amount = parseFloat (bidask[amountKey])
+      const id = bidask.id;
+      return [ price, amount, id ]
+    }
+
+    const pbas = (bidasks, priceKey = 0, amountKey = 1) =>{
+      return Object.values (bidasks || []).map (bidask => pba (bidask, priceKey, amountKey))
+    }
+
+    return {
+      'bids': this.sortBy (("bids" in orderbook) ? pbas (orderbook["bids"], "price", "volume") : [], 0, true),
+      'asks': this.sortBy (("asks" in orderbook) ? pbas (orderbook["asks"], "price", "volume") : [], 0),
+      'timestamp': timestamp,
+      'datetime': this.iso8601 (timestamp),
+      'nonce': undefined,
+    }
   }
 
   async fetchOrders(symbol = undefined, since = undefined, limit = 50, params = {}) {
