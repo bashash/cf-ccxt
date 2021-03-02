@@ -145,7 +145,7 @@ module.exports = class cointiger extends Exchange {
     async fetchBalance(params = {}) {
         await this.loadMarkets();
         const response = await this.tapiPrivateGetUserBalance(params);
-        const balances = this.safeValue(response, 'data');
+        const balances = this.safeValue(response, 'data', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -167,13 +167,11 @@ module.exports = class cointiger extends Exchange {
             'symbol': this.marketId(symbol),
         };
         const ticker = await this.mapiPublic2GetDetail(request);
-        const { data } = ticker;
-        const {
-            trade_ticker_data: {
-                tick,
-                ts
-            }
-        } = data;
+        const data = this.safeValue(ticker, 'data', {});
+        const trade_ticker_data = this.safeValue(data, 'trade_ticker_data', { tick: {}, ts: {} });
+        const tick = this.safeValue(trade_ticker_data, 'tick');
+        const ts = this.safeValue(trade_ticker_data, 'ts');
+
         const {
             amount,
             high,
@@ -215,8 +213,10 @@ module.exports = class cointiger extends Exchange {
             'size': limit ? limit : '',
         };
         const response = await this.mapiPublic2GetHistoryTrade(request);
-
-        return this.parseTrades(response.data.trade_data, market, since, limit);
+        const data = this.safeValue(response, 'data', {});
+        const trade_data = this.safeValue(data, 'trade_data', {});
+        
+        return this.parseTrades(trade_data, market, since, limit);
     }
 
     parseTrade(trade, market = undefined) {
@@ -262,10 +262,13 @@ module.exports = class cointiger extends Exchange {
             'type': 'step0',
         };
         const orderbook = await this.mapiPublic2GetDepth(request);
-        const timestamp = orderbook.data.depth_data.ts;
-        return this.parseOrderBook(orderbook.data.depth_data.tick, timestamp, 'buys', 'asks', 0, 1);
+        const data = this.safeValue(orderbook, 'data', {})
+        const depth_data = this.safeValue(data, 'depth_data', {});
+        const timestamp = this.safeValue(depth_data, 'ts');
+        const tick = this.safeValue(depth_data, 'tick', { buys: [], asks: [] });
+        // const timestamp = orderbook.data.depth_data.ts;
+        return this.parseOrderBook(tick, timestamp, 'buys', 'asks', 0, 1);
     }
-
 
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
